@@ -71,6 +71,12 @@ temp/
 credentials.json
 serviceAccountKey.json
 
+# --- Capturas con datos sensibles ---
+infrastructure/*.png
+infrastructure/*.jpg
+infrastructure/*.jpeg
+infrastructure/credenciales*
+
 # --- OS generated ---
 ehthumbs.db
 ehthumbs_vista.db

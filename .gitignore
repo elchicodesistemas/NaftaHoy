@@ -46,6 +46,9 @@ Desktop.ini
 .classpath
 .settings/
 
+# --- Claude Code (settings personales, no compartidos) ---
+.claude/settings.local.json
+
 # --- Docker ---
 docker-compose.override.yml
 

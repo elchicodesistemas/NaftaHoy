@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Price {
+  id        Int      @id @default(autoincrement())
+  companyId String   // "ypf" | "shell" | "axion" | "puma"
+  fuelType  String   // "Nafta Súper" | "Nafta Premium" | "Diesel" etc.
+  price     Float
+  prevPrice Float
+  region    String   @default("CABA")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, fuelType, region])
+}

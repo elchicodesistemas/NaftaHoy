@@ -1,7 +1,6 @@
 "use client";
 
-// Logos SVG simplificados de cada petrolera
-// Inspirados en los logos reales pero minimalistas para evitar problemas de copyright
+import { BRAND_COLORS, type BrandId } from "@/lib/brands";
 
 interface BrandLogoProps {
   brand: string;
@@ -9,20 +8,18 @@ interface BrandLogoProps {
 }
 
 export default function BrandLogo({ brand, size = 28 }: BrandLogoProps) {
-  const logos: Record<string, JSX.Element> = {
+  const logos: Record<BrandId, JSX.Element> = {
     ypf: (
-      // YPF: Escudo simplificado con las letras
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#0B3D91" />
-        <text x="16" y="21" textAnchor="middle" fill="white" fontSize="12" fontWeight="800" fontFamily="Inter, sans-serif">
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.ypf} />
+        <text x="16" y="21" textAnchor="middle" fill="white" fontSize="12" fontWeight="800" fontFamily="Archivo, sans-serif">
           YPF
         </text>
       </svg>
     ),
     shell: (
-      // Shell: Concha simplificada
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#FFD500" />
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.shell} />
         <path
           d="M16 6 C16 6 8 12 8 19 C8 23 11.5 26 16 26 C20.5 26 24 23 24 19 C24 12 16 6 16 6Z"
           fill="none"
@@ -35,31 +32,23 @@ export default function BrandLogo({ brand, size = 28 }: BrandLogoProps) {
       </svg>
     ),
     axion: (
-      // Axion: Triángulo/flecha estilizada
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#6B2D8B" />
-        <path
-          d="M10 22 L16 8 L22 22 Z"
-          fill="none"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-        <line x1="12" y1="18" x2="20" y2="18" stroke="white" strokeWidth="1.5" />
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.axion} />
+        <path d="M10 22 L16 8 L22 22 Z" fill="none" stroke="#0e1114" strokeWidth="2" strokeLinejoin="round" />
+        <line x1="12" y1="18" x2="20" y2="18" stroke="#0e1114" strokeWidth="1.5" />
       </svg>
     ),
     puma: (
-      // Puma: Silueta de puma simplificada
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#008C45" />
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.puma} />
         <path
           d="M7 22 C7 22 9 16 12 14 C14 12.5 15 13 16 14 C17 15 18 16 20 15 C22 14 24 11 25 10 L25 14 C25 14 23 18 21 20 C19 22 17 22 15 21 C13 20 12 20 10 22 Z"
-          fill="white"
-          opacity="0.95"
+          fill="#0e1114"
+          opacity="0.9"
         />
       </svg>
     ),
   };
 
-  return logos[brand] || logos.ypf;
+  return logos[brand as BrandId] || logos.ypf;
 }

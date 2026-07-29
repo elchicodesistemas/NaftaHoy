@@ -1,93 +1,101 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MapPin, Locate, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
+import { companies } from "@/data/mockPrices";
+import { BRAND_COLORS, BRAND_TEXT_ON, type BrandId } from "@/lib/brands";
 
-const mockStations = [
-  { id: 1, name: "YPF - Av. Libertador 1500", brand: "ypf", lat: -34.5628, lng: -58.4372, nafta: 1999 },
-  { id: 2, name: "Shell - Av. Santa Fe 3200", brand: "shell", lat: -34.5885, lng: -58.4098, nafta: 2099 },
-  { id: 3, name: "Axion - Av. Córdoba 4500", brand: "axion", lat: -34.5964, lng: -58.4245, nafta: 2039 },
-  { id: 4, name: "Puma - Av. Cabildo 2100", brand: "puma", lat: -34.5571, lng: -58.4593, nafta: 1979 },
-  { id: 5, name: "YPF - Av. Rivadavia 6700", brand: "ypf", lat: -34.6282, lng: -58.4468, nafta: 1999 },
-  { id: 6, name: "Shell - Av. Callao 1200", brand: "shell", lat: -34.5995, lng: -58.3927, nafta: 2099 },
-  { id: 7, name: "Axion - Av. Corrientes 5500", brand: "axion", lat: -34.6052, lng: -58.4352, nafta: 2039 },
-  { id: 8, name: "Puma - Av. Juan B. Justo 3800", brand: "puma", lat: -34.6089, lng: -58.4515, nafta: 1979 },
+function priceFor(brand: BrandId) {
+  return companies.find((c) => c.id === brand)?.fuels[0].price ?? 0;
+}
+
+const stations = [
+  { name: "YPF - Av. Libertador 1500", brand: "ypf" as BrandId, lat: -34.5628, lng: -58.4372 },
+  { name: "Shell - Av. Santa Fe 3200", brand: "shell" as BrandId, lat: -34.5885, lng: -58.4098 },
+  { name: "Axion - Av. Córdoba 4500", brand: "axion" as BrandId, lat: -34.5964, lng: -58.4245 },
+  { name: "Puma - Av. Cabildo 2100", brand: "puma" as BrandId, lat: -34.5571, lng: -58.4593 },
+  { name: "YPF - Av. Rivadavia 6700", brand: "ypf" as BrandId, lat: -34.6282, lng: -58.4468 },
+  { name: "Shell - Av. Callao 1200", brand: "shell" as BrandId, lat: -34.5995, lng: -58.3927 },
+  { name: "Axion - Av. Corrientes 5500", brand: "axion" as BrandId, lat: -34.6052, lng: -58.4352 },
+  { name: "Puma - Av. Juan B. Justo 3800", brand: "puma" as BrandId, lat: -34.6089, lng: -58.4515 },
 ];
 
-const brandColors: Record<string, string> = {
-  ypf: "#0B3D91",
-  shell: "#FFD500",
-  axion: "#6B2D8B",
-  puma: "#008C45",
-};
-
-const brands = [
-  { id: "all", label: "Todas", color: "#888" },
-  { id: "ypf", label: "YPF", color: "#0B3D91" },
-  { id: "shell", label: "Shell", color: "#FFD500" },
-  { id: "axion", label: "Axion", color: "#6B2D8B" },
-  { id: "puma", label: "Puma", color: "#008C45" },
+const filters: { id: "all" | BrandId; label: string }[] = [
+  { id: "all", label: "Todas" },
+  { id: "ypf", label: "YPF" },
+  { id: "shell", label: "Shell" },
+  { id: "axion", label: "Axion" },
+  { id: "puma", label: "Puma" },
 ];
 
 export default function StationMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const markersGroupRef = useRef<any>(null);
-  const leafletRef = useRef<any>(null);
+  const groupRef = useRef<any>(null);
+  const tileDarkRef = useRef<any>(null);
+  const tileLightRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState<string>("all");
+  const [brand, setBrand] = useState<"all" | BrandId>("all");
 
-  const addMarkers = useCallback((brand: string) => {
-    const L = leafletRef.current;
-    const map = mapInstanceRef.current;
-    const group = markersGroupRef.current;
-    if (!L || !map || !group) return;
+  const addMarkers = useCallback((selected: "all" | BrandId) => {
+    const L = (window as any).L;
+    const group = groupRef.current;
+    if (!L || !group) return;
 
-    // Limpiar el grupo de markers
     group.clearLayers();
 
-    const filtered = brand === "all"
-      ? mockStations
-      : mockStations.filter((s) => s.brand === brand);
+    stations
+      .filter((s) => selected === "all" || s.brand === selected)
+      .forEach((s) => {
+        const color = BRAND_COLORS[s.brand];
+        const text = BRAND_TEXT_ON[s.brand];
+        const price = priceFor(s.brand);
+        const icon = L.divIcon({
+          className: "",
+          html:
+            '<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 8px rgba(0,0,0,.5));">' +
+            '<div style="background:' + color + ';color:' + text + ';font:700 12px Archivo,sans-serif;padding:4px 9px;border-radius:7px;white-space:nowrap;">$' +
+            price.toLocaleString("es-AR") +
+            "</div>" +
+            '<div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid ' +
+            color +
+            ';"></div></div>',
+          iconSize: [64, 36],
+          iconAnchor: [32, 36],
+          popupAnchor: [0, -38],
+        });
 
-    filtered.forEach((station) => {
-      const color = brandColors[station.brand] || "#666";
-
-      // Crear ícono SVG personalizado por marca
-      const svgIcon = L.divIcon({
-        className: '',
-        html: '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">' +
-          '<div style="width:28px;height:28px;background:' + color + ';border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div>' +
-        '</div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -18],
+        const marker = L.marker([s.lat, s.lng], { icon });
+        marker.bindPopup(
+          '<div style="font-family:Archivo,sans-serif;font-size:12px;line-height:1.6;min-width:180px;padding:4px 2px;">' +
+            '<strong style="font-size:14px;display:block;margin-bottom:2px;">' + s.name + "</strong>" +
+            '<span style="opacity:.6;">Nafta Súper</span><br/>' +
+            '<span style="font-size:22px;font-weight:800;color:' + color + ';">$' + price.toLocaleString("es-AR") + "</span>" +
+            '<span style="font-size:11px;opacity:.5;"> /litro</span></div>'
+        );
+        group.addLayer(marker);
       });
+  }, []);
 
-      const marker = L.marker([station.lat, station.lng], {
-        icon: svgIcon,
-      });
-
-      marker.bindPopup(
-        '<div style="font-family:Inter,sans-serif;font-size:12px;line-height:1.6;min-width:170px;padding:4px 0;">' +
-          '<strong style="font-size:14px;display:block;margin-bottom:4px;">' + station.name + '</strong>' +
-          '<span style="color:#888;">Nafta Súper</span><br/>' +
-          '<span style="font-size:20px;font-weight:800;color:' + color + ';">$' + station.nafta.toLocaleString() + '</span>' +
-          '<span style="font-size:11px;color:#aaa;"> /litro</span>' +
-        '</div>'
-      );
-
-      group.addLayer(marker);
-    });
+  const setTiles = useCallback((isDark: boolean) => {
+    const map = mapInstanceRef.current;
+    const tileDark = tileDarkRef.current;
+    const tileLight = tileLightRef.current;
+    if (!map || !tileDark || !tileLight) return;
+    if (isDark) {
+      map.removeLayer(tileLight);
+      tileDark.addTo(map);
+    } else {
+      map.removeLayer(tileDark);
+      tileLight.addTo(map);
+    }
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     let cancelled = false;
 
     const loadLeaflet = async () => {
-      // CSS
       if (!document.querySelector('link[href*="leaflet"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
@@ -95,7 +103,6 @@ export default function StationMap() {
         document.head.appendChild(link);
       }
 
-      // JS
       if (!(window as any).L) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement("script");
@@ -111,23 +118,24 @@ export default function StationMap() {
       const L = (window as any).L;
       if (!L || !mapRef.current || mapInstanceRef.current) return;
 
-      leafletRef.current = L;
+      const map = L.map(mapRef.current, { zoomControl: false }).setView([-34.5997, -58.4297], 13);
+      const attr =
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
 
-      const map = L.map(mapRef.current, {
-        zoomControl: false,
-      }).setView([-34.5997, -58.4297], 13);
-
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      tileDarkRef.current = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: attr,
         maxZoom: 19,
-      }).addTo(map);
+      });
+      tileLightRef.current = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: attr,
+        maxZoom: 19,
+      });
 
-      // Crear un LayerGroup para los markers
-      const group = L.layerGroup().addTo(map);
+      const isDark = document.documentElement.classList.contains("dark");
+      (isDark ? tileDarkRef.current : tileLightRef.current).addTo(map);
 
       mapInstanceRef.current = map;
-      markersGroupRef.current = group;
-
+      groupRef.current = L.layerGroup().addTo(map);
       setLoaded(true);
     };
 
@@ -138,95 +146,95 @@ export default function StationMap() {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
-        markersGroupRef.current = null;
-        leafletRef.current = null;
+        groupRef.current = null;
       }
     };
   }, []);
 
-  // Actualizar markers cuando cambia el filtro o cuando se carga el mapa
   useEffect(() => {
-    if (loaded) {
-      addMarkers(selectedBrand);
-    }
-  }, [selectedBrand, loaded, addMarkers]);
+    if (loaded) addMarkers(brand);
+  }, [brand, loaded, addMarkers]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const observer = new MutationObserver(() => {
+      setTiles(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, [loaded, setTiles]);
 
   const handleLocate = () => {
     const map = mapInstanceRef.current;
-    if (!map) return;
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          map.setView([pos.coords.latitude, pos.coords.longitude], 15);
-        },
-        () => {
-          alert("No se pudo obtener tu ubicación");
-        }
-      );
-    }
+    if (!map || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => map.setView([pos.coords.latitude, pos.coords.longitude], 15),
+      () => alert("No se pudo obtener tu ubicación")
+    );
   };
 
   return (
-    <div className="bg-white dark:bg-dark-card rounded-xl border border-surface-200 dark:border-dark-border overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-surface-100 dark:border-dark-border">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-brand-primary" />
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-              Estaciones cercanas
-            </h3>
-          </div>
-          <button
-            onClick={handleLocate}
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-accent-blue hover:bg-accent-blue/10 transition-colors"
-          >
-            <Locate className="w-3 h-3" />
-            Mi ubicación
-          </button>
-        </div>
-
-        {/* Filtros por marca */}
-        <div className="flex gap-1.5">
-          {brands.map((b) => (
-            <button
-              key={b.id}
-              onClick={() => setSelectedBrand(b.id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                selectedBrand === b.id
-                  ? "bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-800"
-                  : "bg-surface-100 dark:bg-dark-border text-zinc-500 dark:text-zinc-400 hover:bg-surface-200 dark:hover:bg-dark-surface"
-              }`}
-            >
-              {b.id !== "all" && (
-                <span className="w-2 h-2 rounded-full" style={{ background: b.color }} />
-              )}
-              {b.label}
-            </button>
-          ))}
+    <section id="mapa" className="max-w-content mx-auto px-6 pt-11 pb-2">
+      <div className="flex items-baseline justify-between mb-5 gap-2.5 flex-wrap">
+        <h2 className="font-display text-[30px] tracking-wide uppercase text-ink-1 dark:text-ink-dark-1">
+          ¿Dónde cargo más barato?
+        </h2>
+        <div className="flex gap-2 flex-wrap">
+          {filters.map((f) => {
+            const active = brand === f.id;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setBrand(f.id)}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wide bg-transparent text-ink-2 dark:text-ink-dark-2 transition-colors ${
+                  active ? "border-accent" : "border-line dark:border-line-dark"
+                }`}
+              >
+                {f.id !== "all" && (
+                  <span
+                    className="w-[9px] h-[9px] rounded-[3px] inline-block"
+                    style={{ background: BRAND_COLORS[f.id as BrandId] }}
+                  />
+                )}
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Map container */}
-      <div className="relative">
-        <div ref={mapRef} className="w-full h-[380px]" />
+      <div className="rounded-2xl border border-line dark:border-line-dark overflow-hidden relative isolate shadow-sm dark:shadow-none">
+        <div ref={mapRef} className="w-full h-[460px]" />
 
-        {/* Zoom controls */}
-        <div className="absolute top-3 right-3 z-[400] flex flex-col gap-1">
+        <div className="absolute top-3.5 right-3.5 z-[500] flex flex-col gap-1.5">
           <button
             onClick={() => mapInstanceRef.current?.zoomIn()}
-            className="w-8 h-8 rounded-lg bg-white dark:bg-dark-card border border-surface-200 dark:border-dark-border flex items-center justify-center shadow-sm hover:bg-surface-50 transition-colors"
+            className="w-9 h-9 rounded-[9px] bg-panel dark:bg-panel-dark border border-line dark:border-line-dark flex items-center justify-center hover:border-accent transition-colors"
           >
-            <Plus className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+            <Plus className="w-4 h-4 text-ink-2 dark:text-ink-dark-2" />
           </button>
           <button
             onClick={() => mapInstanceRef.current?.zoomOut()}
-            className="w-8 h-8 rounded-lg bg-white dark:bg-dark-card border border-surface-200 dark:border-dark-border flex items-center justify-center shadow-sm hover:bg-surface-50 transition-colors"
+            className="w-9 h-9 rounded-[9px] bg-panel dark:bg-panel-dark border border-line dark:border-line-dark flex items-center justify-center hover:border-accent transition-colors"
           >
-            <Minus className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+            <Minus className="w-4 h-4 text-ink-2 dark:text-ink-dark-2" />
           </button>
         </div>
+
+        <button
+          onClick={handleLocate}
+          className="absolute bottom-4 left-4 z-[500] flex items-center gap-2 px-4 py-2.5 rounded-[9px] bg-accent text-[#141414] text-xs font-bold uppercase tracking-wide shadow-[0_8px_24px_rgba(0,0,0,.4)] hover:brightness-110 transition-[filter]"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="2" x2="5" y1="12" y2="12" />
+            <line x1="19" x2="22" y1="12" y2="12" />
+            <line x1="12" x2="12" y1="2" y2="5" />
+            <line x1="12" x2="12" y1="19" y2="22" />
+            <circle cx="12" cy="12" r="7" />
+          </svg>
+          <span>Mi ubicación</span>
+        </button>
       </div>
-    </div>
+    </section>
   );
 }

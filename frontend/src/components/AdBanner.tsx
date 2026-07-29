@@ -14,26 +14,25 @@ export default function AdBanner({ position, size = "medium" }: AdBannerProps) {
 
   if (position === "horizontal") {
     return (
-      <div className="w-full rounded-lg border border-dashed border-surface-300 dark:border-dark-border bg-surface-100/50 dark:bg-dark-card/50 h-[90px] flex items-center justify-center">
-        <span className="text-xs text-zinc-400 dark:text-zinc-600 select-none">
-          Espacio publicitario — 728x90
+      <div className="w-full rounded-[10px] border border-line2 dark:border-line2-dark bg-panel2 dark:bg-panel2-dark h-[70px] flex items-center justify-center relative">
+        <span className="absolute top-1.5 left-3 text-[9px] tracking-wider uppercase text-ink-4 dark:text-ink-dark-4 select-none">
+          Publicidad
         </span>
+        <span className="text-[11px] text-ink-4 dark:text-ink-dark-4 select-none">728×90</span>
       </div>
     );
   }
 
   return (
     <div
-      className={`w-full rounded-lg border border-dashed border-surface-300 dark:border-dark-border bg-surface-100/50 dark:bg-dark-card/50 ${heights[size]} flex items-center justify-center sticky top-20`}
+      className={`w-full rounded-[10px] border border-line2 dark:border-line2-dark bg-panel2 dark:bg-panel2-dark ${heights[size]} flex items-center justify-center sticky top-20 relative`}
     >
-      <div className="text-center">
-        <span className="text-xs text-zinc-400 dark:text-zinc-600 block select-none">
-          Publicidad
-        </span>
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-700 select-none">
-          160x{size === "small" ? "250" : size === "medium" ? "400" : "600"}
-        </span>
-      </div>
+      <span className="absolute top-1.5 left-3 text-[9px] tracking-wider uppercase text-ink-4 dark:text-ink-dark-4 select-none">
+        Publicidad
+      </span>
+      <span className="text-[11px] text-ink-4 dark:text-ink-dark-4 select-none">
+        160×{size === "small" ? "250" : size === "medium" ? "400" : "600"}
+      </span>
     </div>
   );
 }

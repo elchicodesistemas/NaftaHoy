@@ -36,11 +36,13 @@ Portal de precios de combustibles en tiempo real para Argentina, modelo DolarHoy
 ### Backend (`backend/`)
 - Node.js 20 + Express + TypeScript (stack confirmado 2026-07-29, consistente con el resto del workspace — ver `LS_Jabones/server`)
 - **ORM: Drizzle**, dialecto `postgresql`, schema en `backend/src/models/schema.ts`
-- Base de datos: PostgreSQL (host/proveedor de dev todavía sin decidir — local o Neon, ver `LS_Jabones` para el patrón de Neon compartido entre máquinas). Redis para cache de precios "en vivo", según `docs/arquitectura.md` (todavía no implementado)
+- Base de datos: PostgreSQL en el servidor del compañero (host `179.43.124.36:5432`, base `naftahoy_prueba`, usuario dedicado `naftahoy_dev` — no root). Connection string real solo en `backend/.env` local (gitignored, hay que recrearlo a mano en cada máquina copiando `backend/.env.example`). Redis para cache de precios "en vivo", según `docs/arquitectura.md` (todavía no implementado)
 - Convención de campos: camelCase en TS, snake_case en columnas (Drizzle mapea automático), timestamps siempre `withTimezone: true`
 - "Enums" como texto libre con comentario en el schema listando valores válidos, no `pgEnum` nativo — evita `ALTER TYPE` al sumar variantes (mismo criterio que `LS_Jabones`)
-- Migraciones: `npm run db:generate` (genera SQL en `backend/drizzle/`) y `npm run db:migrate` (aplica) — nunca editar el SQL generado a mano
-- Estado: schema inicial de precios/estaciones/reportes comunitarios ya generado y tipado; falta levantar una DB real (dev), el server Express, y las rutas/servicios/workers (carpetas `routes/`, `services/`, `workers/` siguen vacías)
+- Migraciones: `npm run db:generate` (genera SQL en `backend/drizzle/`) y `npm run db:migrate` (aplica) — nunca editar el SQL generado a mano. `migrations.schema = 'public'` en `drizzle.config.ts` a propósito: `naftahoy_dev` solo tiene (o va a tener) `CREATE` sobre el schema `public`, no sobre la base, así que el tracking de migraciones no puede vivir en un schema `drizzle` aparte
+- **Bloqueante actual (2026-07-30):** `naftahoy_dev` todavía no tiene `CREATE` sobre el schema `public` de `naftahoy_prueba` → `npm run db:migrate` falla con "permission denied". Falta que se corra, **conectado específicamente a `naftahoy_prueba`**: `GRANT CREATE ON SCHEMA public TO naftahoy_dev;`. Verificar con `SELECT has_schema_privilege('naftahoy_dev', 'public', 'CREATE');` (tiene que dar `t`). Primer paso al retomar.
+- Una vez desbloqueado: `npm run db:migrate` (crea las 8 tablas) y después `npm run db:seed:estaciones -- "<ruta-al-csv>"` (sin `--dry-run`) carga el dataset real de Precios en Surtidor — ya validado con `--dry-run`: 4622 estaciones, 11 petroleras, 18355 precios
+- Estado: schema y worker de ingesta ya escritos y tipados (`backend/src/models/schema.ts`, `backend/src/workers/importarSurtidorEnergia.ts`); falta aplicar la migración real (bloqueado por el permiso de arriba), y todavía no hay server Express ni rutas/servicios (`routes/`, `services/` siguen vacías)
 
 ### Infraestructura (fuera de alcance)
 - Levantada y funcionando, manejada por el colaborador.

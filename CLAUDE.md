@@ -33,8 +33,14 @@ Portal de precios de combustibles en tiempo real para Argentina, modelo DolarHoy
 - Iconos: `lucide-react` — no instalar otra librería de íconos
 - Mapas: **Leaflet 1.9.4 cargado via CDN dentro de useEffect**, no como dependencia npm. Ver patrón en `frontend/src/components/StationMap.tsx`. Mantener este patrón en componentes nuevos que usen mapas.
 
-### Backend
-- Por definir. No empezar a codear backend hasta que el usuario confirme el stack.
+### Backend (`backend/`)
+- Node.js 20 + Express + TypeScript (stack confirmado 2026-07-29, consistente con el resto del workspace — ver `LS_Jabones/server`)
+- **ORM: Drizzle**, dialecto `postgresql`, schema en `backend/src/models/schema.ts`
+- Base de datos: PostgreSQL (host/proveedor de dev todavía sin decidir — local o Neon, ver `LS_Jabones` para el patrón de Neon compartido entre máquinas). Redis para cache de precios "en vivo", según `docs/arquitectura.md` (todavía no implementado)
+- Convención de campos: camelCase en TS, snake_case en columnas (Drizzle mapea automático), timestamps siempre `withTimezone: true`
+- "Enums" como texto libre con comentario en el schema listando valores válidos, no `pgEnum` nativo — evita `ALTER TYPE` al sumar variantes (mismo criterio que `LS_Jabones`)
+- Migraciones: `npm run db:generate` (genera SQL en `backend/drizzle/`) y `npm run db:migrate` (aplica) — nunca editar el SQL generado a mano
+- Estado: schema inicial de precios/estaciones/reportes comunitarios ya generado y tipado; falta levantar una DB real (dev), el server Express, y las rutas/servicios/workers (carpetas `routes/`, `services/`, `workers/` siguen vacías)
 
 ### Infraestructura (fuera de alcance)
 - Levantada y funcionando, manejada por el colaborador.

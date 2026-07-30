@@ -60,10 +60,12 @@ Reverse proxy que maneja SSL, compresión, y distribución de tráfico.
 
 ## Decisiones técnicas pendientes
 
-- [ ] Definir stack exacto (Next.js vs otra opción para frontend)
-- [ ] Definir lenguaje del backend (Node.js/TypeScript vs Python vs otro)
-- [ ] Definir ORM (Prisma, Sequelize, SQLAlchemy, etc.)
+- [x] Definir stack exacto (Next.js vs otra opción para frontend) — Next.js 14
+- [x] Definir lenguaje del backend (Node.js/TypeScript vs Python vs otro) — Node.js 20 + Express + TypeScript
+- [x] Definir ORM (Prisma, Sequelize, SQLAlchemy, etc.) — Drizzle
 - [ ] Definir estrategia de deploy (Docker vs instalación directa)
 - [ ] Definir herramienta de scraping (Puppeteer vs Cheerio vs otro)
+- [ ] Definir dónde vive la Postgres de desarrollo (local vs Neon compartida, como en `LS_Jabones`)
 
-Estas decisiones se tomarán en la Fase 0 del proyecto.
+Backend: schema inicial ya escrito en `backend/src/models/schema.ts` (petroleras, estaciones,
+precios_actuales, precios_historico, ingesta_runs, usuarios, reportes_precio, reporte_likes).

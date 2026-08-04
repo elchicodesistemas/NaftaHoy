@@ -92,11 +92,13 @@ En un país con inflación alta, la diferencia entre estaciones es plata real.
 | Tailwind 3 + lucide-react | `frontend/` | ✅ Conservar | Coincide con el stack oficial. |
 | PostgreSQL | `backend/` | ✅ Conservar | — |
 | **Drizzle ORM** | `backend/` | ✅ **Conservar** | Schema sólido de 7 tablas, con migraciones ya generadas. Es el mejor código del repo. |
-| **Prisma** | `frontend/prisma/` | ❌ **SACAR** | Duplica el modelo de datos y usa `Float` para el precio. Nadie lo importa. |
-| npm | Los tres `package.json` | ❌ Sacar | El estándar de la carpeta es **pnpm**. |
+| ~~Prisma~~ | ~~`frontend/prisma/`~~ | ✅ Sacado (paso 2) | Duplicaba el modelo de datos y usaba `Float` para el precio. Nadie lo importaba. |
+| npm | `frontend/package.json`, `backend/package.json` | ❌ Sacar | El estándar de la carpeta es **pnpm** — pendiente paso 4 (coordinar con IT). |
 | Express | — | ❌ Sacar | Se menciona en un commit pero no está instalado. Si hace falta API → **Hono**. |
-| Leaflet vía CDN | `StationMap.tsx` | ⚠️ Revisar | Funciona, pero sin tipos y con HTML por concatenación. |
-| react-leaflet + leaflet | `package.json` raíz | ⚠️ Revisar | Instalados y sin usar. O se adoptan o se borran. |
+| Leaflet vía CDN | `StationMap.tsx` | ⚠️ Revisar | Funciona, pero sin tipos y con HTML por concatenación. Pendiente paso 10. |
+| leaflet + @types/leaflet | `frontend/package.json` | ✅ Movido (paso 3) | Ya no viven en un `package.json` huérfano en la raíz. El JS real se sigue cargando por CDN (patrón intencional, ver `CLAUDE.md`); estas declaraciones son solo para tipos/consistencia. |
+| react-leaflet | — | ✅ Sacado (paso 3) | No se usaba, y v5 requiere React 19 — incompatible con el React 18 pineado. Ni siquiera instalaba. |
+| Biome | raíz + `frontend/` + `backend/` | ✅ **Agregado (paso 5)** | Un solo linter + formateador para todo el proyecto. Cierra N1. |
 
 ### Stack definitivo
 
@@ -109,27 +111,24 @@ Una sola fuente de verdad del modelo de datos: `backend/src/models/schema.ts`.
 ## 4. Estado de salud
 
 ```
-🔴 CRÍTICO   — Dos ORMs definiendo el mismo dato: Drizzle (backend) y Prisma (frontend).
-               El modelo Price de Prisma usa Float para el precio → redondeo incorrecto en plata.
-               Drizzle usa numeric(10,2), que es lo correcto.
-
 🔴 CRÍTICO   — No existe la API. backend/src/routes, /services y /utils están vacíos (.gitkeep).
                backend/package.json ni siquiera tiene un script `dev` o `start`:
                el backend no se puede levantar.
 
-🟡 MEJORABLE — Tres package.json y tres package-lock.json, todos con npm.
-               El de la raíz es huérfano: solo Leaflet, sin `name` ni scripts.
-🟡 MEJORABLE — Sin linter ni formateador. Solo `next lint` en frontend, nada en backend.
+🟡 MEJORABLE — Dos package.json y dos package-lock.json (frontend, backend), todos con npm.
+               Pendiente unificar en pnpm workspaces (paso 4, coordinar con IT).
 🟡 MEJORABLE — .github/workflows/ existe pero está vacío. No hay CI.
 🟡 MEJORABLE — Sin tests. backend/tests/ solo tiene .gitkeep.
 🟡 MEJORABLE — Ramas `Dev` y `develop` duplicadas en el remoto (distinta capitalización → rompe en Windows).
                7 ramas locales y 8 remotas para un proyecto de una persona.
 🟡 MEJORABLE — Leaflet se carga por CDN y se lee con (window as any).L → cero tipos en el
                componente más complejo. Los marcadores se arman concatenando HTML en strings:
-               riesgo de XSS cuando los nombres de estación vengan de la base.
+               riesgo de XSS cuando los nombres de estación vengan de la base. (Paso 10 — Biome
+               ya marca los 6 `noExplicitAny` de StationMap.tsx como warning, a propósito no tocados.)
 🟡 MEJORABLE — infrastructure/ son cuatro carpetas vacías con .gitkeep.
-🟡 MEJORABLE — 20+ archivos modificados sin commitear al momento de la auditoría.
 
+🟢 SANO      — Una sola fuente de verdad del modelo de datos: Drizzle. Prisma eliminado (paso 2).
+🟢 SANO      — Linter y formateador configurados: Biome en raíz + frontend + backend (paso 5).
 🟢 SANO      — Diseño de la base de datos. 7 tablas con decisiones justificadas en comentarios,
                índices pensados para las consultas reales, unique constraints para upsert idempotente.
 🟢 SANO      — Manejo de secretos. Nunca se commiteó un .env (verificado en el historial completo).
@@ -153,10 +152,11 @@ Una sola fuente de verdad del modelo de datos: `backend/src/models/schema.ts`.
 - [x] Cero secretos en el código y en el historial
 - [x] Estructura de carpetas coherente
 - [x] `README.md`
-- [ ] **Un solo gestor de paquetes con lockfile** ← falta
-- [ ] **Formateador y linter configurados** ← falta
+- [ ] **Un solo gestor de paquetes con lockfile** ← falta (paso 4, requiere coordinar con IT)
+- [x] **Formateador y linter configurados** — Biome (paso 5, 2026-08-04)
 
-**Faltan dos ítems para cerrar N1.** Son los dos más baratos de toda la lista.
+**Falta un ítem para cerrar N1:** migrar a pnpm workspaces. Requiere acuerdo previo con IT
+porque puede romper su script de deploy (ver 1.1).
 
 ### N2 — Producto usable (objetivo)
 
@@ -176,11 +176,11 @@ Ordenado por **riesgo bajo primero**. Los pasos 1 a 6 no tocan nada de lo que se
 
 | # | Paso | Qué se gana | Riesgo | Tiempo |
 |---|---|---|---|---|
-| 1 | Commitear o stashear los 20+ archivos pendientes | No perder trabajo | bajo | 5 min |
-| 2 | Borrar `frontend/prisma/` | Una sola fuente de verdad del dato | bajo | 10 min |
-| 3 | Mover Leaflet al `package.json` del frontend y eliminar el de la raíz | Deja de haber un paquete huérfano | bajo | 20 min |
+| 1 | ✅ ~~Commitear o stashear los 20+ archivos pendientes~~ | No perder trabajo | bajo | 5 min |
+| 2 | ✅ ~~Borrar `frontend/prisma/`~~ | Una sola fuente de verdad del dato | bajo | 10 min |
+| 3 | ✅ ~~Mover Leaflet al `package.json` del frontend y eliminar el de la raíz~~ | Deja de haber un paquete huérfano | bajo | 20 min |
 | 4 | Migrar a **pnpm workspaces** — 🤝 **coordinar con IT** | Un solo lockfile, un solo gestor | **medio** | 1 h |
-| 5 | Configurar **Biome** (lint + formato en una herramienta) | **Cierra N1** | bajo | 45 min |
+| 5 | ✅ ~~Configurar **Biome** (lint + formato en una herramienta)~~ | **Cierra N1** | bajo | 45 min |
 | 6 | CI en GitHub Actions: lint + typecheck — 🤝 **coordinar si incluye deploy** | Red de seguridad antes de escribir código nuevo | bajo* | 45 min |
 | 7 | Limpiar ramas · resolver `Dev` vs `develop` — 🤝 **NO borrar nada sin preguntar** | Historial navegable | **alto** | 30 min |
 | 8 | **Construir la API** (Hono sobre el schema existente) | Desbloquea el producto | medio | varias sesiones |
@@ -231,9 +231,11 @@ npm run db:seed:estaciones
 
 | Fecha | Decisión | Estado |
 |---|---|---|
-| 2026-07-30 | Drizzle es el único ORM. Prisma se elimina. | ⏳ pendiente de ejecutar (paso 2) |
+| 2026-07-30 | Drizzle es el único ORM. Prisma se elimina. | ✅ ejecutado 2026-08-04 (paso 2) |
 | 2026-07-30 | pnpm workspaces como estructura de paquetes. | ⏳ pendiente (paso 4) |
 | 2026-07-30 | Si hace falta API separada → Hono, no Express. | ⏳ pendiente (paso 8) |
+| 2026-08-04 | react-leaflet se descarta (no se usaba; v5 requiere React 19, incompatible con React 18 pineado). leaflet + @types/leaflet se conservan en frontend/package.json. | ✅ ejecutado (paso 3) |
+| 2026-08-04 | Biome como linter + formateador único, con `biome.json` raíz y configs anidados via `extends: "//"`. `backend/drizzle/` excluido (archivos generados). | ✅ ejecutado (paso 5) |
 
 > Las decisiones que cambien el rumbo se anotan también en `../../_registro/BITACORA.md`.
 > Las que ameriten justificación larga van como ADR en `docs/adr/` (plantilla en `../../_plantillas/ADR.md`).

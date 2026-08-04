@@ -1,9 +1,15 @@
-import 'dotenv/config';
-import { readFileSync } from 'node:fs';
-import { parse } from 'csv-parse/sync';
-import { eq, sql } from 'drizzle-orm';
-import { db } from '../config/db.js';
-import { estaciones, ingestaRuns, petroleras, preciosActuales, preciosHistorico } from '../models/schema.js';
+import "dotenv/config";
+import { readFileSync } from "node:fs";
+import { parse } from "csv-parse/sync";
+import { eq, sql } from "drizzle-orm";
+import { db } from "../config/db.js";
+import {
+  estaciones,
+  ingestaRuns,
+  petroleras,
+  preciosActuales,
+  preciosHistorico,
+} from "../models/schema.js";
 
 /*
   Importa el dataset "Precios en Surtidor" (Resolución 314/2016, Secretaría de
@@ -19,32 +25,32 @@ import { estaciones, ingestaRuns, petroleras, preciosActuales, preciosHistorico 
   archivo antes de tener una conexión real a Postgres.
 */
 
-const FUENTE = 'energia-datos-abiertos';
+const FUENTE = "energia-datos-abiertos";
 const BATCH_SIZE = 500;
 
 // idempresabandera del CSV -> nuestra petrolera canónica. Cubre las 11 marcas
 // reales que aparecen en el dataset (relevadas con Import-Csv sobre el archivo real).
 const MARCAS: Record<string, { nombre: string; slug: string }> = {
-  '-1': { nombre: 'Sin Marca', slug: 'sin-marca' },
-  '1': { nombre: 'Bandera Blanca', slug: 'blanca' },
-  '2': { nombre: 'YPF', slug: 'ypf' },
-  '4': { nombre: 'Shell', slug: 'shell' },
-  '6': { nombre: 'DAPSA', slug: 'dapsa' },
-  '8': { nombre: 'Refinor', slug: 'refinor' },
-  '24': { nombre: 'Oil Combustibles', slug: 'oil-combustibles' },
-  '26': { nombre: 'Axion Energy', slug: 'axion' },
-  '28': { nombre: 'Puma Energy', slug: 'puma' },
-  '29': { nombre: 'Gulf', slug: 'gulf' },
-  '30': { nombre: 'Voy', slug: 'voy' },
+  "-1": { nombre: "Sin Marca", slug: "sin-marca" },
+  "1": { nombre: "Bandera Blanca", slug: "blanca" },
+  "2": { nombre: "YPF", slug: "ypf" },
+  "4": { nombre: "Shell", slug: "shell" },
+  "6": { nombre: "DAPSA", slug: "dapsa" },
+  "8": { nombre: "Refinor", slug: "refinor" },
+  "24": { nombre: "Oil Combustibles", slug: "oil-combustibles" },
+  "26": { nombre: "Axion Energy", slug: "axion" },
+  "28": { nombre: "Puma Energy", slug: "puma" },
+  "29": { nombre: "Gulf", slug: "gulf" },
+  "30": { nombre: "Voy", slug: "voy" },
 };
 
 // producto del CSV -> tipo_combustible canónico (formato unificado de docs/fuentes-datos.md)
 const PRODUCTOS: Record<string, string> = {
-  'Nafta (súper) entre 92 y 95 Ron': 'nafta_super',
-  'Nafta (premium) de más de 95 Ron': 'nafta_premium',
-  'Gas Oil Grado 2': 'diesel_comun',
-  'Gas Oil Grado 3': 'diesel_premium',
-  GNC: 'gnc',
+  "Nafta (súper) entre 92 y 95 Ron": "nafta_super",
+  "Nafta (premium) de más de 95 Ron": "nafta_premium",
+  "Gas Oil Grado 2": "diesel_comun",
+  "Gas Oil Grado 3": "diesel_premium",
+  GNC: "gnc",
 };
 
 interface CsvRow {
@@ -64,22 +70,25 @@ interface CsvRow {
 
 function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  for (let i = 0; i < items.length; i += size)
+    out.push(items.slice(i, i + size));
   return out;
 }
 
 function parseFechaVigencia(raw: string): Date {
   // El dataset no trae timezone; asumimos hora local Argentina (UTC-3, sin horario de verano).
-  return new Date(`${raw.replace(' ', 'T')}-03:00`);
+  return new Date(`${raw.replace(" ", "T")}-03:00`);
 }
 
 function leerYMapear(csvPath: string) {
-  const raw = readFileSync(csvPath, 'utf-8');
+  const raw = readFileSync(csvPath, "utf-8");
   const rows: CsvRow[] = parse(raw, { columns: true, skip_empty_lines: true });
 
   // Solo Diurno: nuestro schema guarda un precio por estación+combustible, no por
   // franja horaria. Nocturno queda documentado acá si algún día se agrega esa dimensión.
-  const diurnas = rows.filter((r) => r.tipohorario === 'Diurno' && r.latitud && r.longitud);
+  const diurnas = rows.filter(
+    (r) => r.tipohorario === "Diurno" && r.latitud && r.longitud,
+  );
 
   const petrolerasPorSlug = new Map<string, { nombre: string; slug: string }>();
   for (const r of diurnas) {
@@ -89,7 +98,8 @@ function leerYMapear(csvPath: string) {
 
   const estacionPorExternalId = new Map<string, CsvRow>();
   for (const r of diurnas) {
-    if (!estacionPorExternalId.has(r.idempresa)) estacionPorExternalId.set(r.idempresa, r);
+    if (!estacionPorExternalId.has(r.idempresa))
+      estacionPorExternalId.set(r.idempresa, r);
   }
 
   const estacionValues = [...estacionPorExternalId.entries()]
@@ -125,8 +135,9 @@ function leerYMapear(csvPath: string) {
 
   return {
     totalFilas: rows.length,
-    filasOmitidasSinCoordenadas: rows.filter((r) => r.tipohorario === 'Diurno' && (!r.latitud || !r.longitud))
-      .length,
+    filasOmitidasSinCoordenadas: rows.filter(
+      (r) => r.tipohorario === "Diurno" && (!r.latitud || !r.longitud),
+    ).length,
     petrolerasPorSlug,
     estacionValues,
     precioRows,
@@ -135,31 +146,40 @@ function leerYMapear(csvPath: string) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const dryRun = args.includes('--dry-run');
-  const csvPath = args.find((a) => !a.startsWith('--'));
+  const dryRun = args.includes("--dry-run");
+  const csvPath = args.find((a) => !a.startsWith("--"));
   if (!csvPath) {
-    throw new Error('Uso: npx tsx src/workers/importarSurtidorEnergia.ts <ruta-al-csv> [--dry-run]');
+    throw new Error(
+      "Uso: npx tsx src/workers/importarSurtidorEnergia.ts <ruta-al-csv> [--dry-run]",
+    );
   }
 
-  const { totalFilas, filasOmitidasSinCoordenadas, petrolerasPorSlug, estacionValues, precioRows } =
-    leerYMapear(csvPath);
+  const {
+    totalFilas,
+    filasOmitidasSinCoordenadas,
+    petrolerasPorSlug,
+    estacionValues,
+    precioRows,
+  } = leerYMapear(csvPath);
 
   console.log(`Filas totales en el CSV: ${totalFilas}`);
-  console.log(`Filas Diurno sin coordenadas (omitidas): ${filasOmitidasSinCoordenadas}`);
+  console.log(
+    `Filas Diurno sin coordenadas (omitidas): ${filasOmitidasSinCoordenadas}`,
+  );
   console.log(`Petroleras detectadas: ${petrolerasPorSlug.size}`);
   console.log(`Estaciones únicas a cargar: ${estacionValues.length}`);
   console.log(`Precios a cargar: ${precioRows.length}`);
 
   if (dryRun) {
-    console.log('--dry-run: no se escribió nada en la base.');
-    console.log('Muestra de estación:', estacionValues[0]);
-    console.log('Muestra de precio:', precioRows[0]);
+    console.log("--dry-run: no se escribió nada en la base.");
+    console.log("Muestra de estación:", estacionValues[0]);
+    console.log("Muestra de precio:", precioRows[0]);
     return;
   }
 
   const [run] = await db
     .insert(ingestaRuns)
-    .values({ fuente: FUENTE, estado: 'en_progreso' })
+    .values({ fuente: FUENTE, estado: "en_progreso" })
     .returning({ id: ingestaRuns.id });
 
   try {
@@ -169,7 +189,10 @@ async function main() {
       const [row] = await db
         .insert(petroleras)
         .values({ nombre: marca.nombre, slug: marca.slug })
-        .onConflictDoUpdate({ target: petroleras.slug, set: { nombre: marca.nombre } })
+        .onConflictDoUpdate({
+          target: petroleras.slug,
+          set: { nombre: marca.nombre },
+        })
         .returning({ id: petroleras.id, slug: petroleras.slug });
       petroleraIdPorSlug.set(row.slug, row.id);
     }
@@ -205,7 +228,8 @@ async function main() {
           },
         })
         .returning({ id: estaciones.id, externalId: estaciones.externalId });
-      for (const row of inserted) estacionIdPorExternalId.set(row.externalId, row.id);
+      for (const row of inserted)
+        estacionIdPorExternalId.set(row.externalId, row.id);
     }
     console.log(`Estaciones cargadas: ${estacionIdPorExternalId.size}`);
 
@@ -244,13 +268,17 @@ async function main() {
 
     await db
       .update(ingestaRuns)
-      .set({ estado: 'ok', registrosProcesados: preciosCargados, finalizadoEn: new Date() })
+      .set({
+        estado: "ok",
+        registrosProcesados: preciosCargados,
+        finalizadoEn: new Date(),
+      })
       .where(eq(ingestaRuns.id, run.id));
   } catch (err) {
     await db
       .update(ingestaRuns)
       .set({
-        estado: 'error',
+        estado: "error",
         errorMensaje: err instanceof Error ? err.message : String(err),
         finalizadoEn: new Date(),
       })

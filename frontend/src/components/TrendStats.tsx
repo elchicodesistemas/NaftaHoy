@@ -22,7 +22,9 @@ export default function TrendStats() {
           Próximo ajuste estimado
         </span>
         {/* TODO: sin fuente de datos todavía — placeholder editorial hasta tener backend/fuente oficial */}
-        <span className="font-display text-[42px] leading-tight text-ink-1 dark:text-ink-dark-1">Agosto</span>
+        <span className="font-display text-[42px] leading-tight text-ink-1 dark:text-ink-dark-1">
+          Agosto
+        </span>
         <span className="text-xs text-ink-3 dark:text-ink-dark-3 text-pretty">
           por actualización del impuesto a los combustibles
         </span>

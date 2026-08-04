@@ -1,13 +1,13 @@
-import Ticker from "@/components/Ticker";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
 import AdBanner from "@/components/AdBanner";
-import PriceBoard from "@/components/PriceBoard";
-import TrendSection from "@/components/TrendSection";
-import StationMap from "@/components/StationMap";
-import NewsGrid from "@/components/NewsGrid";
 import CommunityReports from "@/components/CommunityReports";
 import Footer from "@/components/Footer";
+import Hero from "@/components/Hero";
+import Navbar from "@/components/Navbar";
+import NewsGrid from "@/components/NewsGrid";
+import PriceBoard from "@/components/PriceBoard";
+import StationMap from "@/components/StationMap";
+import Ticker from "@/components/Ticker";
+import TrendSection from "@/components/TrendSection";
 
 export default function Home() {
   return (

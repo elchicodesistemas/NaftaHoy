@@ -13,7 +13,10 @@ export function getPriciestCompany(companies: Company[]): Company {
 }
 
 export function getSuperSpread(companies: Company[]): number {
-  return getPriciestCompany(companies).fuels[0].price - getCheapestCompany(companies).fuels[0].price;
+  return (
+    getPriciestCompany(companies).fuels[0].price -
+    getCheapestCompany(companies).fuels[0].price
+  );
 }
 
 export function getVariacionPct(fuel: FuelPrice): number {
@@ -22,7 +25,8 @@ export function getVariacionPct(fuel: FuelPrice): number {
 
 export function getAveragePrices(companies: Company[]) {
   const avg = (index: number) =>
-    companies.reduce((sum, c) => sum + c.fuels[index].price, 0) / companies.length;
+    companies.reduce((sum, c) => sum + c.fuels[index].price, 0) /
+    companies.length;
   return {
     super: avg(0),
     premium: avg(1),

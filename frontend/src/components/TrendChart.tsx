@@ -15,7 +15,9 @@ export default function TrendChart() {
     y: h - pad - ((p - min) / range) * (h - pad * 2),
   }));
 
-  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const line = pts
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
   const area = `${line} L ${pts[pts.length - 1].x} ${h} L ${pts[0].x} ${h} Z`;
 
   const first = prices[0];
@@ -32,7 +34,9 @@ export default function TrendChart() {
           <h2 className="font-display text-[22px] tracking-wide uppercase text-ink-1 dark:text-ink-dark-1">
             Tendencia semanal
           </h2>
-          <span className="text-xs text-ink-4 dark:text-ink-dark-4">Nafta Súper · YPF · últimos 7 días</span>
+          <span className="text-xs text-ink-4 dark:text-ink-dark-4">
+            Nafta Súper · YPF · últimos 7 días
+          </span>
         </div>
         <div className="text-right">
           <span
@@ -43,20 +47,26 @@ export default function TrendChart() {
             {up ? "+" : ""}
             {change.toFixed(1).replace(".", ",")}%
           </span>
-          <span className="block text-[11px] text-ink-4 dark:text-ink-dark-4">esta semana</span>
+          <span className="block text-[11px] text-ink-4 dark:text-ink-dark-4">
+            esta semana
+          </span>
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-[170px]">
+      <svg
+        aria-hidden="true"
+        viewBox={`0 0 ${w} ${h}`}
+        className="w-full h-[170px]"
+      >
         <defs>
           <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#ffc400" stopOpacity="0.28" />
             <stop offset="100%" stopColor="#ffc400" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {gridLines.map((y, i) => (
+        {gridLines.map((y) => (
           <line
-            key={i}
+            key={y}
             x1={pad}
             y1={y}
             x2={w - pad}
@@ -66,9 +76,27 @@ export default function TrendChart() {
           />
         ))}
         <path d={area} fill="url(#tg)" />
-        <path d={line} fill="none" stroke="#ffc400" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="5" fill="#ffc400" />
-        <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="11" fill="#ffc400" opacity="0.22" />
+        <path
+          d={line}
+          fill="none"
+          stroke="#ffc400"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle
+          cx={pts[pts.length - 1].x}
+          cy={pts[pts.length - 1].y}
+          r="5"
+          fill="#ffc400"
+        />
+        <circle
+          cx={pts[pts.length - 1].x}
+          cy={pts[pts.length - 1].y}
+          r="11"
+          fill="#ffc400"
+          opacity="0.22"
+        />
         <text
           x={pts[pts.length - 1].x - 10}
           y={pts[pts.length - 1].y - 17 < 15 ? 20 : pts[pts.length - 1].y - 17}
@@ -84,7 +112,10 @@ export default function TrendChart() {
 
       <div className="flex justify-between mt-1.5 px-1.5">
         {weeklyTrend.map((d) => (
-          <span key={d.day} className="text-[11px] text-ink-4 dark:text-ink-dark-4">
+          <span
+            key={d.day}
+            className="text-[11px] text-ink-4 dark:text-ink-dark-4"
+          >
             {d.day}
           </span>
         ))}

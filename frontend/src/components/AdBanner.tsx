@@ -18,7 +18,9 @@ export default function AdBanner({ position, size = "medium" }: AdBannerProps) {
         <span className="absolute top-1.5 left-3 text-[9px] tracking-wider uppercase text-ink-4 dark:text-ink-dark-4 select-none">
           Publicidad
         </span>
-        <span className="text-[11px] text-ink-4 dark:text-ink-dark-4 select-none">728×90</span>
+        <span className="text-[11px] text-ink-4 dark:text-ink-dark-4 select-none">
+          728×90
+        </span>
       </div>
     );
   }

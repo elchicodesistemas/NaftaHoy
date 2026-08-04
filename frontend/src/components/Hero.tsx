@@ -28,7 +28,8 @@ export default function Hero() {
             ¿Cuánto sale llenar el tanque hoy?
           </h1>
           <p className="mt-5 text-base leading-relaxed text-ink-3 dark:text-ink-dark-3 max-w-[480px] text-pretty">
-            Precios de nafta, diésel y GNC de todas las petroleras, actualizados en vivo desde fuentes oficiales y reportes de la comunidad.
+            Precios de nafta, diésel y GNC de todas las petroleras, actualizados
+            en vivo desde fuentes oficiales y reportes de la comunidad.
           </p>
           <div className="flex gap-3 mt-7">
             <a
@@ -57,7 +58,9 @@ export default function Hero() {
             <div
               key={row.label}
               className={`px-[22px] py-2 flex items-center justify-between ${
-                i < rows.length - 1 ? "border-b border-line2 dark:border-[#22272d]" : ""
+                i < rows.length - 1
+                  ? "border-b border-line2 dark:border-[#22272d]"
+                  : ""
               } ${i === rows.length - 1 ? "pb-3" : ""}`}
             >
               <span className="text-sm font-semibold uppercase tracking-wide text-ink-4 dark:text-ink-dark-4">
@@ -65,10 +68,15 @@ export default function Hero() {
               </span>
               <span
                 className={`font-display text-[44px] tabular-nums ${
-                  row.highlight ? "text-accent-ink dark:text-accent" : "text-ink-1 dark:text-ink-dark-1"
+                  row.highlight
+                    ? "text-accent-ink dark:text-accent"
+                    : "text-ink-1 dark:text-ink-dark-1"
                 }`}
               >
-                ${row.value.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+                $
+                {row.value.toLocaleString("es-AR", {
+                  maximumFractionDigits: 0,
+                })}
               </span>
             </div>
           ))}

@@ -8,7 +8,11 @@ export default function Footer() {
       <div className="max-w-content mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-md bg-accent flex items-center justify-center">
-            <Fuel className="w-[15px] h-[15px]" strokeWidth={2.2} color="#141414" />
+            <Fuel
+              className="w-[15px] h-[15px]"
+              strokeWidth={2.2}
+              color="#141414"
+            />
           </div>
           <span className="font-display text-base tracking-wide uppercase text-ink-1 dark:text-ink-dark-1">
             Nafta<span className="text-accent-ink dark:text-accent">Hoy</span>
@@ -17,18 +21,19 @@ export default function Footer() {
 
         <div className="flex gap-5">
           {links.map((label) => (
-            <a
+            <button
               key={label}
-              href="#"
+              type="button"
               className="text-xs text-ink-3 dark:text-ink-dark-3 hover:text-accent-ink dark:hover:text-accent transition-colors"
             >
               {label}
-            </a>
+            </button>
           ))}
         </div>
 
         <span className="text-[11px] text-ink-4 dark:text-ink-dark-4">
-          © 2026 NaftaHoy.com · Los precios son informativos y pueden variar según la estación.
+          © 2026 NaftaHoy.com · Los precios son informativos y pueden variar
+          según la estación.
         </span>
       </div>
     </footer>

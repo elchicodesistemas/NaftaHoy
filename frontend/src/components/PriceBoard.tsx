@@ -1,6 +1,10 @@
 import { companies } from "@/data/mockPrices";
-import { getSortedBySuper, getSuperSpread, getVariacionPct } from "@/lib/priceUtils";
 import { BRAND_COLORS, type BrandId } from "@/lib/brands";
+import {
+  getSortedBySuper,
+  getSuperSpread,
+  getVariacionPct,
+} from "@/lib/priceUtils";
 import BrandLogo from "./BrandLogo";
 
 export default function PriceBoard() {
@@ -46,7 +50,9 @@ export default function PriceBoard() {
             <div
               key={company.id}
               className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center px-[22px] py-4 hover:bg-panel2 dark:hover:bg-panel2-dark transition-colors ${
-                i < sorted.length - 1 ? "border-b border-line2 dark:border-line2-dark" : ""
+                i < sorted.length - 1
+                  ? "border-b border-line2 dark:border-line2-dark"
+                  : ""
               }`}
             >
               <div className="flex items-center gap-3.5">
@@ -68,7 +74,9 @@ export default function PriceBoard() {
               </div>
               <span
                 className={`font-display text-2xl text-right tabular-nums ${
-                  isCheapest ? "text-down dark:text-down-dark" : "text-ink-1 dark:text-ink-dark-1"
+                  isCheapest
+                    ? "text-down dark:text-down-dark"
+                    : "text-ink-1 dark:text-ink-dark-1"
                 }`}
               >
                 ${company.fuels[0].price.toLocaleString("es-AR")}
@@ -97,9 +105,13 @@ export default function PriceBoard() {
       </div>
 
       <p className="mt-2.5 mx-1 text-[11px] text-ink-4 dark:text-ink-dark-4">
-        Precios de referencia en CABA. La diferencia entre la más barata y la más cara hoy es de{" "}
-        <span className="text-accent-ink dark:text-accent font-bold">${spread.toLocaleString("es-AR")} por litro</span>{" "}
-        — unos ${(spread * 50).toLocaleString("es-AR")} en un tanque de 50 litros.
+        Precios de referencia en CABA. La diferencia entre la más barata y la
+        más cara hoy es de{" "}
+        <span className="text-accent-ink dark:text-accent font-bold">
+          ${spread.toLocaleString("es-AR")} por litro
+        </span>{" "}
+        — unos ${(spread * 50).toLocaleString("es-AR")} en un tanque de 50
+        litros.
       </p>
     </section>
   );

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Fuel, Menu, X } from "lucide-react";
+import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
@@ -21,7 +21,11 @@ export default function Navbar() {
           {/* Logo */}
           <a href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center">
-              <Fuel className="w-[19px] h-[19px]" strokeWidth={2.2} color="#141414" />
+              <Fuel
+                className="w-[19px] h-[19px]"
+                strokeWidth={2.2}
+                color="#141414"
+              />
             </div>
             <span className="font-display text-xl tracking-wide uppercase text-ink-1 dark:text-ink-dark-1">
               Nafta<span className="text-accent-ink dark:text-accent">Hoy</span>
@@ -49,10 +53,15 @@ export default function Navbar() {
             </div>
             <ThemeToggle />
             <button
+              type="button"
               onClick={() => setIsOpen(!isOpen)}
               className="md:hidden p-2 rounded-lg text-ink-3 dark:text-ink-dark-3 hover:bg-panel2 dark:hover:bg-panel2-dark"
             >
-              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>

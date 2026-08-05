@@ -94,6 +94,22 @@ Ejemplo: `[2026-05-07] feature: agregar filtro por marca en PriceTable`
 - "Squash and merge" en GitHub
 - Commits atómicos (un cambio lógico por commit)
 
+## Trabajo multi-máquina (Máquina 1 personal / Máquina 2 laburo)
+
+El usuario alterna entre dos máquinas sobre el mismo repo. La sincronización es GitHub — no hay
+otro canal — así que **antes de escribir código, hacer `git fetch` y chequear si el commit más
+reciente coincide con lo esperado** (puede haber trabajo de la otra máquina no traído todavía).
+
+Al cerrar una sesión de trabajo (antes o junto con el commit final):
+1. Agregar una entrada en `docs/registro-sesiones.md` — fecha, qué máquina (1 o 2), 2-5 bullets
+   como mucho de qué se hizo. Resumido: el detalle ya vive en los mensajes de commit, esto es
+   para que la sesión de Claude Code en la otra máquina se ubique rápido sin releer todo el historial.
+2. Confirmar que el commit de esa entrada quede pusheado (ver regla de nunca dejar trabajo sin
+   sincronizar).
+
+Esto reemplaza la necesidad de "unificar" las dos instancias de Claude Code a mano: como este
+archivo (`CLAUDE.md`) se lee al arrancar en cualquier máquina, la regla se aplica sola en ambas.
+
 ## Convenciones de código frontend
 
 - Componentes en `frontend/src/components/` (un componente por archivo, `.tsx`)
@@ -105,6 +121,7 @@ Ejemplo: `[2026-05-07] feature: agregar filtro por marca en PriceTable`
 ## Archivos de referencia importantes
 
 - `CONTRIBUTING.md` — detalle completo del workflow de git
+- `docs/registro-sesiones.md` — qué se hizo en cada sesión y desde qué máquina (leer al arrancar)
 - `README.md` — descripción del proyecto
 - `NAFTAHOY_Mapa_Proyecto.html` — arquitectura propuesta del proyecto completo
 - `frontend/src/components/StationMap.tsx` — patrón de Leaflet via CDN

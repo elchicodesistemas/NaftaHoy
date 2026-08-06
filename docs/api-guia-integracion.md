@@ -1,11 +1,15 @@
 # API de NaftaHoy — Guía de integración
 
-> **v1.0** — 2026-08-05. Cubre autenticación, límites y los endpoints actuales para probar
+> **v1.1** — 2026-08-06. Cubre autenticación, límites y los endpoints actuales para probar
 > la API de forma standalone (Postman / curl / DBeaver para cruzar contra la base).
 > **v2.0** (pendiente) va a sumar la guía de integración con el frontend Next.js — cómo
 > reemplazar `src/data/mockPrices.ts` por llamadas reales a esta API (paso 9 de
 > `FICHA_MADUREZ.md`). Hasta que eso pase, esta guía trata la API como si la consumiera
 > un tercero externo, no el propio frontend del proyecto.
+>
+> **Cambios desde v1.0:** la autenticación pasó de una API key estática compartida a un
+> flujo de dos pasos (credenciales de integrador → token Bearer de vida corta), con las
+> credenciales registradas en una tabla en Postgres en vez de una sola variable de entorno.
 
 ---
 
@@ -18,9 +22,20 @@ cd backend
 npm run dev
 ```
 
-Queda escuchando en `http://localhost:3001`. Necesitás `backend/.env` con `DATABASE_URL` y
-`API_KEY` completos (ver `backend/.env.example`) — sin eso el server no arranca o rechaza
-todo con 500.
+Queda escuchando en `http://localhost:3001`. Necesitás `backend/.env` con `DATABASE_URL`,
+`JWT_SECRET` y `JWT_EXPIRES_IN` completos (ver `backend/.env.example`) — sin `JWT_SECRET`
+el server ni arranca.
+
+Además necesitás un **integrador registrado** en la tabla `integradores` — no hay
+auto-registro todavía. Se crea (o se rehabilita) con:
+
+```bash
+cd backend
+npm run seed:integrador -- <usuario> <empresa> <secret>
+```
+
+Esto deja la fila con `habilitado = true`. Sin eso, `POST /auth/token` va a rechazar
+cualquier credencial aunque esté "bien escrita".
 
 ---
 
@@ -35,38 +50,69 @@ todo con 500.
 
 ## 3. Autenticación
 
+Flujo de dos pasos, mismo patrón estructural que usan otras APIs de integradores (client
+credentials → token de vida corta → Bearer):
+
+### Paso 1 — pedir un token
+
+```bash
+curl -X POST http://localhost:3001/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"usuario": "TU_USUARIO", "secret": "TU_SECRET"}'
+```
+
+**Response — `200`:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+`expiresIn` está en segundos (3600 = 1 hora). **No hay refresh token en esta primera
+instancia** — cuando el token expira, se vuelve a pedir uno nuevo con el mismo `POST`.
+
+**Si el usuario no existe, el secret no coincide, o el integrador está deshabilitado**
+(mismo mensaje para los tres casos, a propósito — no se revela cuál de las tres pasó):
+```json
+// 401
+{ "error": "Credenciales inválidas" }
+```
+
+### Paso 2 — usar el token
+
 Todo lo que cuelga de `/api/*` requiere el header:
 
 ```
-x-api-key: <tu-api-key>
+Authorization: Bearer <accessToken>
 ```
 
-Tu key está en `backend/.env` (`API_KEY=...`). Si necesitás una nueva:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
-```
-
-`GET /health` es la única ruta pública — no pide key. Es a propósito, para poder chequear
-que el server está vivo sin exponer nada de datos.
-
-**Si falta la key o no matchea:**
+**Si falta el header:**
 ```json
 // 401
-{ "error": "API key inválida o faltante" }
+{ "error": "Falta el token de autenticación" }
 ```
 
-**Si el server no tiene `API_KEY` configurada (bug de infraestructura, no tuyo):**
+**Si el token es inválido o ya venció:**
 ```json
-// 500
-{ "error": "API_KEY no configurada en el servidor" }
+// 401
+{ "error": "Token inválido o vencido" }
 ```
+
+`GET /health` es la única ruta pública — no pide token. Es a propósito, para poder chequear
+que el server está vivo sin exponer nada.
 
 ---
 
 ## 4. Rate limit
 
-**100 requests cada 15 minutos**, contadas por API key (no por IP, mientras mandes la key).
+Dos límites separados:
+
+| Ruta | Límite | Por qué |
+|---|---|---|
+| `POST /auth/token` | 10 cada 15 min, por IP | Frena fuerza bruta contra `usuario`/`secret` |
+| `GET /api/precios` (y el resto de `/api/*`) | 100 cada 15 min, por IP | Uso general |
 
 Cada respuesta incluye headers informativos:
 ```
@@ -100,12 +146,19 @@ curl http://localhost:3001/health
 
 ---
 
+### `POST /auth/token`
+
+Ver sección 3. Body `{ usuario, secret }`, devuelve `{ accessToken, tokenType, expiresIn }`.
+
+---
+
 ### `GET /api/precios`
 
-Requiere `x-api-key`. Devuelve precios de combustible reportados en "Precios en Surtidor"
-(fuente oficial — ver `docs/fuentes-datos.md`). Hoy lee de la vista `v_precios_surtidor`
-(36.739 filas reales) — **no** de las tablas normalizadas `estaciones`/`precios_actuales`
-de `schema.ts`, que todavía no están migradas (contexto completo en `CLAUDE.md`).
+Requiere `Authorization: Bearer <token>`. Devuelve precios de combustible reportados en
+"Precios en Surtidor" (fuente oficial — ver `docs/fuentes-datos.md`). Hoy lee de la vista
+`v_precios_surtidor` (36.739 filas reales) — **no** de las tablas normalizadas
+`estaciones`/`precios_actuales` de `schema.ts`, que todavía no están migradas (contexto
+completo en `CLAUDE.md`).
 
 **Query params — todos opcionales:**
 
@@ -120,7 +173,7 @@ de `schema.ts`, que todavía no están migradas (contexto completo en `CLAUDE.md
 
 **Ejemplo:**
 ```bash
-curl -H "x-api-key: TU_KEY" \
+curl -H "Authorization: Bearer TU_TOKEN" \
   "http://localhost:3001/api/precios?producto=nafta&provincia=BUENOS%20AIRES&limit=5"
 ```
 
@@ -163,39 +216,48 @@ curl -H "x-api-key: TU_KEY" \
 
 ## 6. Primer test paso a paso (quickstart)
 
-1. `cd backend && npm run dev` — confirmar que loguea `API escuchando en http://localhost:3001`.
-2. Abrir Postman → **Import** → `backend/postman/NaftaHoy-API.postman_collection.json`.
-3. En la colección, click derecho → **Edit** → variable `apiKey` → pegar tu valor real de
-   `backend/.env`. (La variable queda vacía en el archivo a propósito — nunca se commitea el
-   valor real a git.)
-4. Correr **"Health check"** → tiene que dar `200 { "ok": true }`. Si esto falla, el problema
+1. `cd backend && npm run seed:integrador -- naftahoy-frontend NaftaHoy tu-secret-de-prueba`
+   — crea (o rehabilita) tu integrador de prueba.
+2. `cd backend && npm run dev` — confirmar que loguea `API escuchando en http://localhost:3001`.
+3. Abrir Postman → **Import** → `backend/postman/NaftaHoy-API.postman_collection.json`.
+4. En la colección, click derecho → **Edit** → variables `usuario` y `secret` → completar
+   con lo que usaste en el paso 1. (Quedan vacías en el archivo a propósito — nunca se
+   commitean valores reales a git.)
+5. Correr **"Health check"** → tiene que dar `200 { "ok": true }`. Si esto falla, el problema
    es que el server no está levantado, no la API en sí.
-5. Correr **"Precios - sin filtros"** → tiene que devolver 20 filas reales.
-6. Correr **"Precios - sin API key (debe dar 401)"** → confirmar que efectivamente corta.
-7. Jugar con **"Precios - filtro por producto"** y **"filtro por empresa y provincia"**,
+6. Correr **"Auth - obtener token"** → tiene que dar `200` con un `accessToken`. Un script en
+   la request lo guarda solo en la variable de colección `bearerToken` — no hay que copiarlo
+   a mano.
+7. Correr **"Precios - sin filtros"** → tiene que devolver 20 filas reales (usa `bearerToken`
+   automáticamente, vía la autenticación a nivel de colección).
+8. Correr **"Precios - sin token (debe dar 401)"** → confirmar que efectivamente corta.
+9. Jugar con **"Precios - filtro por producto"** y **"filtro por empresa y provincia"**,
    cambiando los query params desde la pestaña Params de Postman.
-8. (Opcional) Cruzar un resultado contra DBeaver: tomar una fila de la respuesta y buscarla
-   en `v_precios_surtidor` con un `SELECT` filtrando por `cuit` + `fecha_vigencia` — tiene
-   que ser exactamente la misma fila.
+10. (Opcional) Cruzar un resultado contra DBeaver: tomar una fila de la respuesta y buscarla
+    en `v_precios_surtidor` con un `SELECT` filtrando por `cuit` + `fecha_vigencia` — tiene
+    que ser exactamente la misma fila.
 
 ---
 
 ## 7. Qué todavía no tiene esta API
 
-- Solo lectura — no hay `POST`/`PUT`/`DELETE` todavía.
+- Solo lectura — no hay `POST`/`PUT`/`DELETE` sobre precios todavía.
+- Sin refresh token — al expirar el access token, hay que volver a pedir uno nuevo.
+- Sin endpoint de auto-registro de integradores — las filas se crean a mano
+  (`npm run seed:integrador`), y habilitar/deshabilitar accesos también es manual.
 - Sin documentación OpenAPI/Swagger interactiva (se podría sumar más adelante).
 - La fuente de datos (`v_precios_surtidor`) es provisoria — puede cambiar si se decide migrar
   a las tablas normalizadas de `schema.ts`.
 - Sin deploy — solo corre local por ahora.
 - El rate limit es en memoria del proceso — si en algún momento corren varias instancias del
   server en paralelo, el límite efectivo se multiplica (hace falta un store compartido tipo
-  Redis para que siga siendo 100 real).
+  Redis para que siga siendo real).
 
 ---
 
 ## Referencias
 
-- `CLAUDE.md` — contexto técnico completo del backend y decisión de fuente de datos.
+- `CLAUDE.md` — contexto técnico completo del backend, auth y decisión de fuente de datos.
 - `docs/fuentes-datos.md` — de dónde sale "Precios en Surtidor" y cómo se normalizan los campos.
 - `backend/postman/NaftaHoy-API.postman_collection.json` — colección lista para importar.
 - `FICHA_MADUREZ.md`, paso 8 — estado del plan de la API.

@@ -1,27 +1,68 @@
 {
   "info": {
     "name": "NaftaHoy API",
-    "description": "Coleccion para probar la API local de NaftaHoy (Hono). Antes de usar: completar la variable de coleccion 'apiKey' con el valor de API_KEY de tu backend/.env (nunca commitear ese valor acá).",
+    "description": "Coleccion para probar la API local de NaftaHoy (Hono). Antes de usar: completar las variables de coleccion 'usuario' y 'secret' con las credenciales de tu integrador (creado con `npm run seed:integrador` en backend/), y correr 'Auth - obtener token' — el script de esa request guarda el accessToken solo, en la variable 'bearerToken', que ya usan todas las demas requests via la autenticacion a nivel coleccion.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }]
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3001", "type": "string" },
-    { "key": "apiKey", "value": "", "type": "string" }
+    { "key": "usuario", "value": "", "type": "string" },
+    { "key": "secret", "value": "", "type": "string" },
+    { "key": "bearerToken", "value": "", "type": "string" }
   ],
   "item": [
     {
       "name": "Health check",
       "request": {
         "method": "GET",
+        "auth": { "type": "noauth" },
         "header": [],
-        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Auth - obtener token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const json = pm.response.json();",
+              "  pm.collectionVariables.set('bearerToken', json.accessToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "auth": { "type": "noauth" },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuario\": \"{{usuario}}\",\n  \"secret\": \"{{secret}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/token",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "token"]
+        }
       }
     },
     {
       "name": "Precios - sin filtros",
       "request": {
         "method": "GET",
-        "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
         "url": {
           "raw": "{{baseUrl}}/api/precios?limit=20",
           "host": ["{{baseUrl}}"],
@@ -34,7 +75,6 @@
       "name": "Precios - filtro por producto (nafta)",
       "request": {
         "method": "GET",
-        "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
         "url": {
           "raw": "{{baseUrl}}/api/precios?producto=nafta&limit=20",
           "host": ["{{baseUrl}}"],
@@ -50,7 +90,6 @@
       "name": "Precios - filtro por empresa y provincia",
       "request": {
         "method": "GET",
-        "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
         "url": {
           "raw": "{{baseUrl}}/api/precios?empresa=YPF&provincia=BUENOS AIRES&limit=20",
           "host": ["{{baseUrl}}"],
@@ -64,11 +103,15 @@
       }
     },
     {
-      "name": "Precios - sin API key (debe dar 401)",
+      "name": "Precios - sin token (debe dar 401)",
       "request": {
         "method": "GET",
-        "header": [],
-        "url": { "raw": "{{baseUrl}}/api/precios", "host": ["{{baseUrl}}"], "path": ["api", "precios"] }
+        "auth": { "type": "noauth" },
+        "url": {
+          "raw": "{{baseUrl}}/api/precios",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "precios"]
+        }
       }
     }
   ]

@@ -11,6 +11,35 @@
 
 ---
 
+## 2026-08-06 — Máquina 1 (personal)
+
+- Reemplazada la API key estática por un flujo Bearer de dos pasos, a pedido del usuario
+  (referencia estructural: el Swagger de la API de su trabajo, ITRIS). Decisiones tomadas
+  con el usuario: token de 1h, sin refresh token por ahora, corte directo de la API key vieja,
+  y credenciales registradas en una tabla en vez de env vars sueltas.
+- Tabla nueva `integradores` (usuario, empresa, secret_hash con bcrypt, habilitado) en un
+  archivo Drizzle y un `drizzle-integradores.config.ts` separados de `schema.ts`, para no
+  forzar la migración pendiente de las 8 tablas grandes.
+- Hallazgo importante al migrar: el migrador de Drizzle corre `CREATE SCHEMA IF NOT EXISTS
+  "public"` siempre, y `naftahoy_dev` no tiene `CREATE` a nivel base (solo sobre el schema) —
+  la CLI de drizzle-kit se cuelga sin mostrar el error en terminal no interactiva. Se aplicó
+  la migración a mano replicando el migrador de `drizzle-orm` sin ese paso. Documentado en
+  `CLAUDE.md` para la próxima vez que haga falta migrar algo.
+- Nuevo: `backend/src/lib/jwt.ts`, `backend/src/lib/integradores.ts`,
+  `backend/src/routes/auth.ts` (`POST /auth/token`), `backend/src/middleware/bearerAuth.ts`
+  (reemplaza a `apiKey.ts`, borrado), `backend/src/scripts/seedIntegrador.ts` (sin endpoint
+  de auto-registro en esta instancia, las filas se crean a mano).
+- `rateLimit.ts` re-keyed a IP (antes confiaba en `x-api-key` sin verificar) + nuevo
+  `authRateLimit` (10/15min) en `/auth/token`.
+- Probado en caliente de punta a punta: token OK, secret incorrecto, usuario inexistente,
+  usuario deshabilitado, `/api/precios` sin token / con token inválido / con token válido,
+  y el 429 real tanto en `/auth/token` como en `/api/precios`.
+- Colección de Postman actualizada: nueva request "Auth - obtener token" con script que
+  captura el `accessToken` solo; auth a nivel de colección pasa a Bearer.
+- `docs/api-guia-integracion.md` a v1.1 con el flujo nuevo completo.
+
+---
+
 ## 2026-08-05 — Máquina 1 (personal), tercera continuación
 
 - Se escribe `docs/api-guia-integracion.md` (v1.0): documentación de la API pensada para un

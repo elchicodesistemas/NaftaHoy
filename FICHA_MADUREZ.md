@@ -130,13 +130,21 @@ Una sola fuente de verdad del modelo de datos: `backend/src/models/schema.ts`.
                riesgo de XSS cuando los nombres de estación vengan de la base. (Paso 10 — Biome
                ya marca los 6 `noExplicitAny` de StationMap.tsx como warning, a propósito no tocados.)
 🟡 MEJORABLE — infrastructure/ son cuatro carpetas vacías con .gitkeep.
+🟡 MEJORABLE — naftahoy_dev no tiene CREATE sobre la base (solo sobre el schema public), así que
+               el migrador de Drizzle (que siempre corre CREATE SCHEMA IF NOT EXISTS antes de
+               migrar) falla. La migración de integradores se aplicó a mano el 2026-08-05
+               (ver CLAUDE.md); cualquier migración futura pisa el mismo problema hasta que se
+               pida GRANT CREATE ON DATABASE al compañero.
 
 🟢 SANO      — Una sola fuente de verdad del modelo de datos: Drizzle. Prisma eliminado (paso 2).
 🟢 SANO      — Linter y formateador configurados: Biome en raíz + frontend + backend (paso 5).
 🟢 SANO      — La API existe y responde con datos reales: GET /api/precios (Hono), probado
                contra la base de producción (paso 8, arrancado 2026-08-05).
-🟢 SANO      — /api/* protegido con API key + rate limit (100 req/15min), probado en caliente
-               (401 sin key, 429 al superar el límite). /health queda público a propósito.
+🟢 SANO      — /api/* protegido con Bearer token de vida corta (1h) + registro de integradores
+               en base (tabla integradores, habilitado/deshabilitado a mano) + rate limit
+               (100 req/15min en /api/*, 10 req/15min en /auth/token). Probado en caliente:
+               token OK, secret/usuario incorrecto, usuario deshabilitado, token ausente/inválido,
+               y el 429 real de las dos rutas (2026-08-06). /health sigue público a propósito.
 🟢 SANO      — Diseño de la base de datos. 7 tablas con decisiones justificadas en comentarios,
                índices pensados para las consultas reales, unique constraints para upsert idempotente.
 🟢 SANO      — Manejo de secretos. Nunca se commiteó un .env (verificado en el historial completo).
@@ -229,8 +237,11 @@ npm run db:seed:estaciones
   `ingesta_runs` ya está pensada para detectarlo, pero nadie la está mirando todavía.
 - **Legal:** hay que revisar si publicar precios scrapeados de esas empresas tiene alguna restricción
   de términos de uso. No es una pregunta técnica y conviene resolverla antes de escalar.
-- **Auth propia.** El schema tiene `usuarios.passwordHash`. El estándar de la carpeta dice
+- **Auth propia (humanos).** El schema tiene `usuarios.passwordHash`. El estándar de la carpeta dice
   **no escribir auth casera**. Antes de implementar el login, decidir: Better Auth, Supabase Auth o Clerk.
+  Esto **no** incluye el Bearer token de `/auth/token` (sección 9, 2026-08-06): esa regla es para
+  login humano con contraseña, no para credenciales de integrador máquina-a-máquina — confirmado
+  al revisar `_sistema/00-stack-oficial.md`.
 - **`AdBanner.tsx`** sugiere monetización con publicidad. Sin definir.
 
 ---
@@ -246,7 +257,10 @@ npm run db:seed:estaciones
 | 2026-08-04 | Biome como linter + formateador único, con `biome.json` raíz y configs anidados via `extends: "//"`. `backend/drizzle/` excluido (archivos generados). | ✅ ejecutado (paso 5) |
 | 2026-08-05 | Se confirma Hono (no Express) para la API — `CLAUDE.md` tenía una nota vieja de Express, corregida. | ✅ ejecutado (paso 8) |
 | 2026-08-05 | La API arranca leyendo `v_precios_surtidor` (datos reales, cargados por fuera del repo) en vez de migrar primero las 8 tablas de `schema.ts`, para ir rápido. Pendiente decidir si se migra más adelante. | ✅ ejecutado, ⏳ decisión de fondo pendiente |
-| 2026-08-05 | `/api/*` requiere API key (header `x-api-key`) + rate limit de 100 req/15min en memoria. Sin Redis todavía — alcanza para una sola instancia del server. | ✅ ejecutado |
+| 2026-08-05 | ~~`/api/*` requiere API key (header `x-api-key`) + rate limit de 100 req/15min en memoria.~~ | ⛔ reemplazado 2026-08-06 (ver abajo) |
+| 2026-08-06 | Se reemplaza la API key estática por un flujo Bearer de dos pasos (`POST /auth/token` → JWT de 1h), inspirado en el patrón de la API de ITRIS (trabajo del usuario): credenciales de integrador → token de vida corta → Bearer en `/api/*`. Corte directo, sin convivencia con el esquema viejo. Sin refresh token en esta primera instancia. | ✅ ejecutado |
+| 2026-08-06 | Se agrega tabla `integradores` (usuario, empresa, secret_hash, habilitado) en Postgres para registrar y poder activar/desactivar accesos a mano — sin endpoint de auto-registro, filas creadas con `npm run seed:integrador`. Vive en un archivo Drizzle y un config de migración separados de `schema.ts` para no forzar la migración pendiente de las 8 tablas grandes. | ✅ ejecutado |
+| 2026-08-06 | Rate limit re-keyed a IP (antes leía `x-api-key` sin verificar); se agrega `authRateLimit` (10/15min) específico para `/auth/token`, por ser la ruta que compara secretos. | ✅ ejecutado |
 
 > Las decisiones que cambien el rumbo se anotan también en `../../_registro/BITACORA.md`.
 > Las que ameriten justificación larga van como ADR en `docs/adr/` (plantilla en `../../_plantillas/ADR.md`).

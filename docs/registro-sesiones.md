@@ -11,6 +11,15 @@
 
 ---
 
+## 2026-08-05 — Máquina 1 (personal), tercera continuación
+
+- Se escribe `docs/api-guia-integracion.md` (v1.0): documentación de la API pensada para un
+  integrador externo — base URL, auth, rate limit, los dos endpoints con ejemplos reales de
+  request/response, quickstart paso a paso con la colección de Postman, y qué le falta
+  todavía. La v2.0 (integración con el frontend) queda para cuando se ataque el paso 9.
+
+---
+
 ## 2026-08-05 — Máquina 1 (personal), segunda continuación
 
 - Seguridad de `/api/*`: `backend/src/middleware/apiKey.ts` (header `x-api-key` contra

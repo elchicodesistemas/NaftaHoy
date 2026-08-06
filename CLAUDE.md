@@ -124,6 +124,7 @@ archivo (`CLAUDE.md`) se lee al arrancar en cualquier máquina, la regla se apli
 
 - `CONTRIBUTING.md` — detalle completo del workflow de git
 - `docs/registro-sesiones.md` — qué se hizo en cada sesión y desde qué máquina (leer al arrancar)
+- `docs/api-guia-integracion.md` — endpoints, auth, rate limit y quickstart de la API (v1.0, standalone; v2.0 va a cubrir la integración con el frontend)
 - `README.md` — descripción del proyecto
 - `NAFTAHOY_Mapa_Proyecto.html` — arquitectura propuesta del proyecto completo
 - `frontend/src/components/StationMap.tsx` — patrón de Leaflet via CDN

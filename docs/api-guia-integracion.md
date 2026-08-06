@@ -168,7 +168,7 @@ completo en `CLAUDE.md`).
 | `empresa` | string | parcial, sin distinguir mayúsculas | `YPF` |
 | `provincia` | string | exacto | `BUENOS AIRES` |
 | `region` | string | exacto (contra `region_normalizada`) | `PAMPEANA` |
-| `limit` | número | — | `20` (default `50`, máximo `500`) |
+| `limit` | número | — | `20` (default `50`, máximo `200`) |
 | `offset` | número | — | `0` (default `0`) |
 
 **Ejemplo:**

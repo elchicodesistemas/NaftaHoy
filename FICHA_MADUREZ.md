@@ -135,6 +135,8 @@ Una sola fuente de verdad del modelo de datos: `backend/src/models/schema.ts`.
 🟢 SANO      — Linter y formateador configurados: Biome en raíz + frontend + backend (paso 5).
 🟢 SANO      — La API existe y responde con datos reales: GET /api/precios (Hono), probado
                contra la base de producción (paso 8, arrancado 2026-08-05).
+🟢 SANO      — /api/* protegido con API key + rate limit (100 req/15min), probado en caliente
+               (401 sin key, 429 al superar el límite). /health queda público a propósito.
 🟢 SANO      — Diseño de la base de datos. 7 tablas con decisiones justificadas en comentarios,
                índices pensados para las consultas reales, unique constraints para upsert idempotente.
 🟢 SANO      — Manejo de secretos. Nunca se commiteó un .env (verificado en el historial completo).
@@ -244,6 +246,7 @@ npm run db:seed:estaciones
 | 2026-08-04 | Biome como linter + formateador único, con `biome.json` raíz y configs anidados via `extends: "//"`. `backend/drizzle/` excluido (archivos generados). | ✅ ejecutado (paso 5) |
 | 2026-08-05 | Se confirma Hono (no Express) para la API — `CLAUDE.md` tenía una nota vieja de Express, corregida. | ✅ ejecutado (paso 8) |
 | 2026-08-05 | La API arranca leyendo `v_precios_surtidor` (datos reales, cargados por fuera del repo) en vez de migrar primero las 8 tablas de `schema.ts`, para ir rápido. Pendiente decidir si se migra más adelante. | ✅ ejecutado, ⏳ decisión de fondo pendiente |
+| 2026-08-05 | `/api/*` requiere API key (header `x-api-key`) + rate limit de 100 req/15min en memoria. Sin Redis todavía — alcanza para una sola instancia del server. | ✅ ejecutado |
 
 > Las decisiones que cambien el rumbo se anotan también en `../../_registro/BITACORA.md`.
 > Las que ameriten justificación larga van como ADR en `docs/adr/` (plantilla en `../../_plantillas/ADR.md`).

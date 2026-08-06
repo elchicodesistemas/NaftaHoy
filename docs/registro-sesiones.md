@@ -11,6 +11,20 @@
 
 ---
 
+## 2026-08-05 — Máquina 1 (personal), segunda continuación
+
+- Seguridad de `/api/*`: `backend/src/middleware/apiKey.ts` (header `x-api-key` contra
+  `API_KEY` en `.env`) + `backend/src/middleware/rateLimit.ts` (`hono-rate-limiter`,
+  100 req/15min en memoria, keyed por API key con fallback a IP). `/health` queda público.
+  Probado en caliente: 401 sin key / con key inválida, 200 con key válida, 429 real al
+  superar el límite (se disparó a propósito con 105 requests seguidas).
+- Colección de Postman en `backend/postman/NaftaHoy-API.postman_collection.json` para que
+  el usuario pruebe desde ahí (variable `apiKey` vacía a propósito, no se commitea el valor
+  real).
+- Explicado a fondo cómo funciona Hono y cómo está armado el server (ver conversación).
+
+---
+
 ## 2026-08-05 — Máquina 1 (personal), continuación
 
 - Verificado `.env`: nunca estuvo en git (búsqueda completa del historial), y sigue existiendo

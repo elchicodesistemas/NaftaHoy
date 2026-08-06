@@ -1,0 +1,75 @@
+{
+  "info": {
+    "name": "NaftaHoy API",
+    "description": "Coleccion para probar la API local de NaftaHoy (Hono). Antes de usar: completar la variable de coleccion 'apiKey' con el valor de API_KEY de tu backend/.env (nunca commitear ese valor acá).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001", "type": "string" },
+    { "key": "apiKey", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "Precios - sin filtros",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/precios?limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "precios"],
+          "query": [{ "key": "limit", "value": "20" }]
+        }
+      }
+    },
+    {
+      "name": "Precios - filtro por producto (nafta)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/precios?producto=nafta&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "precios"],
+          "query": [
+            { "key": "producto", "value": "nafta" },
+            { "key": "limit", "value": "20" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Precios - filtro por empresa y provincia",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/precios?empresa=YPF&provincia=BUENOS AIRES&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "precios"],
+          "query": [
+            { "key": "empresa", "value": "YPF" },
+            { "key": "provincia", "value": "BUENOS AIRES" },
+            { "key": "limit", "value": "20" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Precios - sin API key (debe dar 401)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/precios", "host": ["{{baseUrl}}"], "path": ["api", "precios"] }
+      }
+    }
+  ]
+}

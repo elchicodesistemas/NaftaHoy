@@ -37,6 +37,32 @@
 - Colección de Postman actualizada: nueva request "Auth - obtener token" con script que
   captura el `accessToken` solo; auth a nivel de colección pasa a Bearer.
 - `docs/api-guia-integracion.md` a v1.1 con el flujo nuevo completo.
+- **Validado por el usuario a mano en Postman, de punta a punta:** `POST /auth/token` con el
+  integrador de prueba (`naftahoy-frontend`) devuelve el `accessToken`; `GET /api/precios`
+  con Auth Type "Bearer Token" (no "API Key" — ese era el esquema viejo) y el token pegado
+  ahí responde `200` con datos reales, filtrando por `producto`/`provincia`. **Confirmado:
+  todo el flujo de auth + la API quedan funcionando de punta a punta.**
+
+**Estado al cerrar esta sesión — todo funcionando, verificado en vivo:**
+- Conexión a Postgres (`naftahoy_prueba`) OK.
+- `POST /auth/token` + `GET /api/precios` con Bearer, probados por mí (curl) y por el
+  usuario (Postman) independientemente, mismos resultados.
+- Rate limit real en las dos rutas (`429` confirmado).
+- Nada roto: typecheck, lint y build del backend pasan limpios.
+
+**Próximos pasos (todavía sin arrancar):**
+1. **Conectar el frontend** (paso 9 de `FICHA_MADUREZ.md`) — reemplazar `mockPrices.ts` por
+   llamadas reales a esta API. Es el momento de escribir la v2.0 de
+   `docs/api-guia-integracion.md`.
+2. **Repensar la estructura de la API.** El usuario la ve "muy básica" tal como está (rutas
+   sueltas, sin capa de servicios/repositorio, sin validación con Zod pese a ser el estándar
+   del workspace, sin mapeo de respuesta más prolijo) y va a investigar por su cuenta una
+   config/arquitectura mejor antes de definir el rumbo — quedó abierto, no decidido.
+   Candidatos a considerar cuando vuelva con eso: Zod para validar bodies/query params,
+   una capa de servicios separada de las rutas, y `@hono/zod-openapi` para generar un
+   Swagger real (cerraría el círculo con la referencia de ITRIS que motivó el flujo de auth).
+3. Sigue pendiente el **paso 4** (pnpm workspaces, bloqueado por coordinación con IT) y el
+   **`GRANT CREATE ON DATABASE`** si hace falta migrar algo más de `schema.ts` más adelante.
 
 ---
 

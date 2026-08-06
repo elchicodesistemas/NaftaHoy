@@ -34,15 +34,24 @@ Portal de precios de combustibles en tiempo real para Argentina, modelo DolarHoy
 - Mapas: **Leaflet 1.9.4 cargado via CDN dentro de useEffect**, no como dependencia npm. Ver patrón en `frontend/src/components/StationMap.tsx`. Mantener este patrón en componentes nuevos que usen mapas.
 
 ### Backend (`backend/`)
-- Node.js 20 + Express + TypeScript (stack confirmado 2026-07-29, consistente con el resto del workspace — ver `LS_Jabones/server`)
+- Node.js 20 + **Hono** + TypeScript (decisión de la ficha 2026-07-30: "si hace falta API separada → Hono, no Express". La nota vieja de Express en este archivo estaba desactualizada, corregida 2026-08-05)
 - **ORM: Drizzle**, dialecto `postgresql`, schema en `backend/src/models/schema.ts`
-- Base de datos: PostgreSQL en el servidor del compañero (host `179.43.124.36:5432`, base `naftahoy_prueba`, usuario dedicado `naftahoy_dev` — no root). Connection string real solo en `backend/.env` local (gitignored, hay que recrearlo a mano en cada máquina copiando `backend/.env.example`). Redis para cache de precios "en vivo", según `docs/arquitectura.md` (todavía no implementado)
+- Base de datos: PostgreSQL en el servidor del compañero (host `179.43.124.36:5432`, base `naftahoy_prueba`, usuario dedicado `naftahoy_dev` — no root). Connection string real solo en `backend/.env` local (gitignored, hay que recrearlo a mano en cada máquina copiando `backend/.env.example` — nunca viaja por git, ver `docs/registro-sesiones.md`). Redis para cache de precios "en vivo", según `docs/arquitectura.md` (todavía no implementado)
 - Convención de campos: camelCase en TS, snake_case en columnas (Drizzle mapea automático), timestamps siempre `withTimezone: true`
 - "Enums" como texto libre con comentario en el schema listando valores válidos, no `pgEnum` nativo — evita `ALTER TYPE` al sumar variantes (mismo criterio que `LS_Jabones`)
-- Migraciones: `npm run db:generate` (genera SQL en `backend/drizzle/`) y `npm run db:migrate` (aplica) — nunca editar el SQL generado a mano. `migrations.schema = 'public'` en `drizzle.config.ts` a propósito: `naftahoy_dev` solo tiene (o va a tener) `CREATE` sobre el schema `public`, no sobre la base, así que el tracking de migraciones no puede vivir en un schema `drizzle` aparte
-- **Bloqueante actual (2026-07-30):** `naftahoy_dev` todavía no tiene `CREATE` sobre el schema `public` de `naftahoy_prueba` → `npm run db:migrate` falla con "permission denied". Falta que se corra, **conectado específicamente a `naftahoy_prueba`**: `GRANT CREATE ON SCHEMA public TO naftahoy_dev;`. Verificar con `SELECT has_schema_privilege('naftahoy_dev', 'public', 'CREATE');` (tiene que dar `t`). Primer paso al retomar.
-- Una vez desbloqueado: `npm run db:migrate` (crea las 8 tablas) y después `npm run db:seed:estaciones -- "<ruta-al-csv>"` (sin `--dry-run`) carga el dataset real de Precios en Surtidor — ya validado con `--dry-run`: 4622 estaciones, 11 petroleras, 18355 precios
-- Estado: schema y worker de ingesta ya escritos y tipados (`backend/src/models/schema.ts`, `backend/src/workers/importarSurtidorEnergia.ts`); falta aplicar la migración real (bloqueado por el permiso de arriba), y todavía no hay server Express ni rutas/servicios (`routes/`, `services/` siguen vacías)
+- Migraciones: `npm run db:generate` (genera SQL en `backend/drizzle/`) y `npm run db:migrate` (aplica) — nunca editar el SQL generado a mano. `migrations.schema = 'public'` en `drizzle.config.ts` a propósito. El permiso `CREATE` sobre `public` para `naftahoy_dev` **ya está otorgado** (verificado 2026-08-05, `has_schema_privilege` da `true` — el bloqueante que estaba anotado acá se resolvió sin que quedara registrado quién lo hizo).
+- **Dato importante (2026-08-05):** en `naftahoy_prueba` existen `staging_precios_surtidor` (36.739 filas) y la vista `v_precios_surtidor`, cargadas **por fuera del pipeline del repo** — ni `importarSurtidorEnergia.ts` ni ninguna migración de acá las creó. Las 8 tablas de `schema.ts` (`estaciones`, `petroleras`, `precios_actuales`, etc.) **todavía no están migradas** — `npm run db:migrate` nunca se corrió. Decisión: la API (paso 8) arranca leyendo `v_precios_surtidor` para ir rápido, modelada en `backend/src/models/staging.ts` con `.existing()` — deliberadamente fuera del `schema` que apunta `drizzle.config.ts`, así `db:generate` nunca la toca. Pendiente decidir si en algún momento se migra a las tablas normalizadas.
+- Server: `backend/src/index.ts` (Hono + `@hono/node-server`, puerto `3001` por defecto vía `PORT`). Rutas en `backend/src/routes/` — hoy solo `GET /api/precios` (filtros `producto`, `empresa`, `provincia`, `region`, `limit`, `offset`) y `GET /health` (sin auth, para monitoreo). `npm run dev` (tsx watch) / `npm run build && npm start`.
+- **Seguridad de `/api/*` (actualizado 2026-08-06):** la API key estática (`apiKey.ts`) se dio de baja — corte directo, sin convivencia. Ahora es un flujo Bearer de dos pasos:
+  1. `POST /auth/token` (`backend/src/routes/auth.ts`) con `{ usuario, secret }` → busca la fila en la tabla `integradores` (`backend/src/models/integradores.ts`), valida `habilitado` + `bcrypt.compare` contra `secret_hash` (`backend/src/lib/integradores.ts`), firma un JWT (`backend/src/lib/jwt.ts`, `jsonwebtoken`, mismo patrón que `LS_Jabones/server/src/lib/jwt.ts`) con `JWT_SECRET`/`JWT_EXPIRES_IN` (`.env`, default `1h`). Responde `{ accessToken, tokenType, expiresIn }`.
+  2. `/api/*` exige `Authorization: Bearer <token>` (`backend/src/middleware/bearerAuth.ts`), mismos mensajes que LS_Jabones: 401 "Falta el token de autenticación" / "Token inválido o vencido".
+  - Sin refresh token — al expirar, se vuelve a pedir uno nuevo con las mismas credenciales.
+  - `backend/src/middleware/rateLimit.ts`: `apiRateLimit` (100 req/15min, `/api/*`) y `authRateLimit` (10 req/15min, `/auth/token`, más estricto por ser el punto donde se compara un secreto), los dos keyed por IP — leer el `sub` de un JWT antes de verificarlo no es un dato confiable para ratelimitear. En memoria del proceso, mismo límite de escalado a Redis que ya aplicaba antes.
+  - Sin endpoint de auto-registro: las filas de `integradores` se crean con `npm run seed:integrador -- <usuario> <empresa> <secret>` (`backend/src/scripts/seedIntegrador.ts`, espejo de `LS_Jabones/server/src/db/seedAdmin.ts`). `habilitado` arranca en `false`; el usuario y su compañero lo activan a mano.
+  - **La tabla `integradores` vive fuera de `schema.ts` a propósito** (`backend/src/models/integradores.ts` + `backend/drizzle-integradores.config.ts`, migraciones propias en `backend/drizzle-integradores/`), para no forzar la migración pendiente de las 8 tablas grandes. Migrarla con `npm run db:generate:integradores` / `db:migrate:integradores`.
+  - **Ojo con `db:migrate:integradores` (y cualquier migración futura contra esta base):** el migrador de Drizzle corre `CREATE SCHEMA IF NOT EXISTS "public"` como paso previo, siempre — y `naftahoy_dev` tiene `CREATE` sobre el schema `public` pero no sobre la base, así que esa migración falla con "permission denied" (la CLI además se cuelga en el spinner sin mostrar el error real en una terminal no interactiva). La migración de `integradores` se aplicó a mano el 2026-08-05 replicando lo que hace `drizzle-orm/node-postgres/migrator` pero sin ese `CREATE SCHEMA`. Si hace falta migrar algo más, mismo problema — o se pide `GRANT CREATE ON DATABASE naftahoy_prueba TO naftahoy_dev;` al compañero, o se repite el mismo workaround manual.
+- Colección de Postman: `backend/postman/NaftaHoy-API.postman_collection.json` — completar las variables `usuario`/`secret` (nunca commitear los valores reales), correr "Auth - obtener token" una vez (guarda el token solo, vía script) y el resto de las requests ya lo usan.
+- Estado: schema y worker de ingesta originales siguen escritos y tipados pero sin aplicar (`backend/src/models/schema.ts`, `backend/src/workers/importarSurtidorEnergia.ts`); `services/` y `utils/` siguen vacías.
 
 ### Infraestructura (fuera de alcance)
 - Levantada y funcionando, manejada por el colaborador.
@@ -94,6 +103,22 @@ Ejemplo: `[2026-05-07] feature: agregar filtro por marca en PriceTable`
 - "Squash and merge" en GitHub
 - Commits atómicos (un cambio lógico por commit)
 
+## Trabajo multi-máquina (Máquina 1 personal / Máquina 2 laburo)
+
+El usuario alterna entre dos máquinas sobre el mismo repo. La sincronización es GitHub — no hay
+otro canal — así que **antes de escribir código, hacer `git fetch` y chequear si el commit más
+reciente coincide con lo esperado** (puede haber trabajo de la otra máquina no traído todavía).
+
+Al cerrar una sesión de trabajo (antes o junto con el commit final):
+1. Agregar una entrada en `docs/registro-sesiones.md` — fecha, qué máquina (1 o 2), 2-5 bullets
+   como mucho de qué se hizo. Resumido: el detalle ya vive en los mensajes de commit, esto es
+   para que la sesión de Claude Code en la otra máquina se ubique rápido sin releer todo el historial.
+2. Confirmar que el commit de esa entrada quede pusheado (ver regla de nunca dejar trabajo sin
+   sincronizar).
+
+Esto reemplaza la necesidad de "unificar" las dos instancias de Claude Code a mano: como este
+archivo (`CLAUDE.md`) se lee al arrancar en cualquier máquina, la regla se aplica sola en ambas.
+
 ## Convenciones de código frontend
 
 - Componentes en `frontend/src/components/` (un componente por archivo, `.tsx`)
@@ -105,6 +130,8 @@ Ejemplo: `[2026-05-07] feature: agregar filtro por marca en PriceTable`
 ## Archivos de referencia importantes
 
 - `CONTRIBUTING.md` — detalle completo del workflow de git
+- `docs/registro-sesiones.md` — qué se hizo en cada sesión y desde qué máquina (leer al arrancar)
+- `docs/api-guia-integracion.md` — endpoints, auth, rate limit y quickstart de la API (v1.0, standalone; v2.0 va a cubrir la integración con el frontend)
 - `README.md` — descripción del proyecto
 - `NAFTAHOY_Mapa_Proyecto.html` — arquitectura propuesta del proyecto completo
 - `frontend/src/components/StationMap.tsx` — patrón de Leaflet via CDN

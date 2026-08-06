@@ -9,9 +9,9 @@ const auth = new Hono();
 const EXPIRES_IN_SECONDS = 60 * 60; // 1h — mantener sincronizado con JWT_EXPIRES_IN en .env
 
 auth.post("/token", zValidator("json", tokenBodySchema), async (c) => {
-  const { usuario, secret } = c.req.valid("json");
+  const { usuario, empresa, secret } = c.req.valid("json");
 
-  const integrador = await verificarCredenciales(usuario, secret);
+  const integrador = await verificarCredenciales(usuario, empresa, secret);
   if (!integrador) {
     return c.json({ error: "Credenciales inválidas" }, 401);
   }

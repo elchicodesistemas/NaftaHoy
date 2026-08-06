@@ -58,8 +58,12 @@ credentials → token de vida corta → Bearer):
 ```bash
 curl -X POST http://localhost:3001/auth/token \
   -H "Content-Type: application/json" \
-  -d '{"usuario": "TU_USUARIO", "secret": "TU_SECRET"}'
+  -d '{"usuario": "TU_USUARIO", "empresa": "TU_EMPRESA", "secret": "TU_SECRET"}'
 ```
+
+`empresa` es obligatoria y se valida contra la fila del integrador (case-insensitive) —
+`usuario` es único a nivel global, pero varias personas de una misma empresa pueden tener
+usuarios distintos, así que pedir `empresa` acá evita asumirla en silencio desde la fila.
 
 **Response — `200`:**
 ```json
@@ -73,8 +77,9 @@ curl -X POST http://localhost:3001/auth/token \
 `expiresIn` está en segundos (3600 = 1 hora). **No hay refresh token en esta primera
 instancia** — cuando el token expira, se vuelve a pedir uno nuevo con el mismo `POST`.
 
-**Si el usuario no existe, el secret no coincide, o el integrador está deshabilitado**
-(mismo mensaje para los tres casos, a propósito — no se revela cuál de las tres pasó):
+**Si el usuario no existe, la empresa no coincide, el secret no coincide, o el integrador
+está deshabilitado** (mismo mensaje para los cuatro casos, a propósito — no se revela cuál
+de los cuatro pasó):
 ```json
 // 401
 { "error": "Credenciales inválidas" }

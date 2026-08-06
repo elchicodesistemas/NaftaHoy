@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "NaftaHoy API",
-    "description": "Coleccion para probar la API local de NaftaHoy (Hono). Antes de usar: completar las variables de coleccion 'usuario' y 'secret' con las credenciales de tu integrador (creado con `npm run seed:integrador` en backend/), y correr 'Auth - obtener token' — el script de esa request guarda el accessToken solo, en la variable 'bearerToken', que ya usan todas las demas requests via la autenticacion a nivel coleccion.",
+    "description": "Coleccion para probar la API local de NaftaHoy (Hono). Antes de usar: completar las variables de coleccion 'usuario', 'empresa' y 'secret' con las credenciales de tu integrador (creado con `npm run seed:integrador` en backend/), y correr 'Auth - obtener token' — el script de esa request guarda el accessToken solo, en la variable 'bearerToken', que ya usan todas las demas requests via la autenticacion a nivel coleccion.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -11,6 +11,7 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3001", "type": "string" },
     { "key": "usuario", "value": "", "type": "string" },
+    { "key": "empresa", "value": "", "type": "string" },
     { "key": "secret", "value": "", "type": "string" },
     { "key": "bearerToken", "value": "", "type": "string" }
   ],
@@ -50,7 +51,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"usuario\": \"{{usuario}}\",\n  \"secret\": \"{{secret}}\"\n}"
+          "raw": "{\n  \"usuario\": \"{{usuario}}\",\n  \"empresa\": \"{{empresa}}\",\n  \"secret\": \"{{secret}}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/auth/token",

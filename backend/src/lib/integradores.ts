@@ -9,11 +9,20 @@ export interface Integrador {
 }
 
 /*
-  Mismo mensaje de error para "no existe", "deshabilitado" e "invalido" —
-  no hay que darle a quien intenta autenticarse pistas sobre si un usuario existe.
+  Mismo mensaje de error para "no existe", "deshabilitado", "empresa no
+  coincide" e "invalido" — no hay que darle a quien intenta autenticarse
+  pistas sobre cuál de los cuatro pasó.
+
+  empresa se exige en el login (no solo se lee de la fila) porque "usuario"
+  es único a nivel global pero varios usuarios pueden pertenecer a la misma
+  empresa — pedirla acá obliga a que quien llama declare explícitamente para
+  qué empresa está pidiendo el token, en vez de asumirla en silencio desde
+  la fila. Comparación case-insensitive: "empresa" es texto libre cargado a
+  mano (seedIntegrador.ts), no hay normalización de mayúsculas todavía.
 */
 export async function verificarCredenciales(
   usuario: string,
+  empresa: string,
   secret: string,
 ): Promise<Integrador | null> {
   const [fila] = await db
@@ -23,6 +32,8 @@ export async function verificarCredenciales(
     .limit(1);
 
   if (!fila?.habilitado) return null;
+
+  if (fila.empresa.toLowerCase() !== empresa.toLowerCase()) return null;
 
   const secretOk = await bcrypt.compare(secret, fila.secretHash);
   if (!secretOk) return null;

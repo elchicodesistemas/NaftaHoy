@@ -11,6 +11,84 @@
 
 ---
 
+## 2026-08-06 — Máquina 1 (personal), continuación
+
+- Pusheado el merge que había quedado local en la sesión anterior:
+  `feature/rediseno-frontend` → `feature/backend-db-handoff` (7 commits), ahora sincronizado
+  con origin.
+- **Validado y descartado en parte un prompt de refactor de API** armado con Claude Desktop
+  (estructura `app.ts`/`server.ts`, `pg` a mano sin ORM, API key estática con SHA-256, Zod,
+  rate limit por cliente, paginación por cursor, seguridad base, errores centralizados,
+  validación de env vars). Dos conflictos reales con decisiones ya tomadas, resueltos con el
+  usuario:
+  - **Auth**: se mantiene el Bearer/JWT del 2026-08-06 anterior, no se vuelve a API key
+    estática (eso hubiera sido un rollback).
+  - **ORM**: se mantiene Drizzle, no se baja a `pg` con SQL a mano. Aclarado con el usuario
+    que Drizzle no es "otra base de datos" — la única fuente de datos sigue siendo el
+    Postgres del compañero, Drizzle es solo la capa de acceso en el código.
+  - El resto del prompt (Zod, seguridad base, errores centralizados, env vars validadas) sí
+    se adaptó e implementó, ver abajo.
+- Nueva rama `feature/api-refactor-estructura` (desde `feature/backend-db-handoff`).
+- **Refactor de estructura de la API, en 5 etapas, cada una verificada antes de pasar a la
+  siguiente** (typecheck + lint + smoke test en caliente contra server real):
+  1. `backend/src/config/env.ts` — todas las env vars (`DATABASE_URL`, `JWT_SECRET`,
+     `JWT_EXPIRES_IN`, `PORT`, `CORS_ORIGIN`) validadas con Zod al arrancar, falla rápido y
+     claro si falta algo. `backend/src/app.ts` nuevo (instancia Hono + middlewares, sin
+     levantar puerto) separado de `index.ts` (solo el `serve()`).
+  2. `secureHeaders()`, `cors()` (solo `http://localhost:3000` por ahora), `compress()`,
+     `logger()` — vienen incluidos en `hono`, sin dependencia nueva.
+  3. `backend/src/schemas/precios.schema.ts` y `auth.schema.ts` — validación con
+     `@hono/zod-validator` en `/api/precios` (query) y `/auth/token` (body), whitelist
+     explícita de columnas filtrables, `limit` con tope **200** (antes 500, sin validar —
+     se recortaba en silencio).
+  4. `app.onError()` / `app.notFound()` centralizados — nunca se filtra el mensaje real de
+     un error interno (confirmado en vivo: un error de conexión a Postgres con detalle
+     completo del lado servidor, y "Error interno del servidor" genérico al cliente).
+  5. `backend/README.md` nuevo con las env vars y comandos.
+  - Dependencias nuevas: `zod`, `@hono/zod-validator`. Commit `4990ac1`.
+  - **Hallazgo técnico:** `v_precios_surtidor` no tiene ninguna columna de id único, así que
+    la paginación por cursor que pedía el prompt original no se puede implementar bien ahí
+    — se mantiene offset por ahora, queda pendiente para cuando se migre al schema
+    normalizado (que sí tiene `uuid` como PK en `estaciones`, `precios_historico`, etc.).
+- **Nueva validación: `empresa` obligatoria en `POST /auth/token`** (a pedido del usuario).
+  `integradores.usuario` es único a nivel global pero varios usuarios pueden pertenecer a la
+  misma empresa (campo de texto libre, sin tabla propia todavía) — ahora se exige `empresa`
+  en el login y se valida contra la fila (case-insensitive), mismo mensaje genérico
+  `"Credenciales inválidas"` para los 4 casos posibles (usuario, empresa, secret,
+  deshabilitado) sin revelar cuál falló. `docs/api-guia-integracion.md` y la colección de
+  Postman actualizadas. Commit `7236df4`.
+- **Se armó `backend/.env` en esta máquina** (no existía — es gitignored, hay que recrearlo a
+  mano en cada una). `DATABASE_URL` real contra `naftahoy_prueba`, `JWT_SECRET` generado
+  nuevo. Se rotó el `secret` del integrador de prueba `naftahoy-frontend` (se había perdido /
+  confundido con `JWT_SECRET`, son cosas distintas) — el nuevo secret quedó solo en la
+  conversación y en la base, no en ningún archivo del repo.
+- **Probado en caliente de punta a punta vía Postman** (usuario, no solo yo): token real
+  obtenido para `naftahoy-frontend`/`NaftaHoy`, `GET /api/precios?empresa=YPF&limit=100`
+  devuelve las 74 filas de YPF, verificado contra el mismo filtro corrido directo por SQL en
+  `naftahoy_prueba`.
+- Efecto secundario de la sesión: se armó un notebook de NotebookLM con toda la
+  documentación del proyecto (15 fuentes) a pedido del compañero de IT, para tener
+  accesibilidad rápida a la arquitectura completa. Validado con preguntas reales — las
+  respuestas coincidieron con el código real (gap de 4 marcas del frontend vs. 11 reales,
+  estaciones hardcodeadas en `StationMap.tsx`, etc.), sin alucinar.
+
+**Estado al cerrar esta sesión:**
+- Rama `feature/api-refactor-estructura` con 2 commits (`4990ac1`, `7236df4`), **todavía sin
+  pushear a origin**.
+- Server de desarrollo quedó corriendo en esta máquina (`localhost:3001`, contra
+  `naftahoy_prueba` real) para que el usuario siga probando en Postman.
+- Typecheck, lint y build del backend pasan limpios en toda la sesión.
+
+**Próximos pasos:**
+1. Pushear `feature/api-refactor-estructura` y abrir el PR contra `develop` cuando el usuario
+   termine de probar en Postman.
+2. Sigue pendiente el **paso 9** (conectar el frontend, reemplazar `mockPrices.ts`) — no se
+   tocó en esta sesión, quedó todo del lado del backend.
+3. Sigue pendiente el **paso 4** (pnpm workspaces, bloqueado por IT) y decidir si en algún
+   momento se migra al schema normalizado (que además destrabaría la paginación por cursor).
+
+---
+
 ## 2026-08-06 — Máquina 1 (personal)
 
 - Reemplazada la API key estática por un flujo Bearer de dos pasos, a pedido del usuario

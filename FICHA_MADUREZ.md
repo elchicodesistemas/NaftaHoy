@@ -60,14 +60,18 @@ cuesta la nafta en cada estación cerca tuyo, y los usuarios pueden reportar pre
 El recorrido de un precio, **tal como está diseñado** (todavía no funciona entero):
 
 ```
-Fuentes externas          →  Worker de ingesta   →  Postgres            →  API      →  Frontend
-(datos abiertos de           importarSurtidor       precios_actuales       ❌ NO      mapa +
- Energía, API de Shell,      Energia.ts             + precios_historico    EXISTE     pizarra +
- scraping YPF/Axion/Puma)                           + estaciones                      tendencia
+Fuentes externas          →  Worker de ingesta   →  Postgres            →  API         →  Frontend
+(datos abiertos de           importarSurtidor       precios_actuales       ⚠️ existe,     mapa +
+ Energía, API de Shell,      Energia.ts             + precios_historico    pero lee de    pizarra +
+ scraping YPF/Axion/Puma)                           + estaciones           otra tabla     tendencia
 ```
 
-**Dónde se corta hoy:** entre Postgres y el frontend no hay nada. El frontend lee de
-`src/data/mockPrices.ts` y de 8 estaciones escritas a mano dentro de `StationMap.tsx`.
+**Dónde se corta hoy:** el frontend todavía lee de `src/data/mockPrices.ts` y de 8 estaciones
+escritas a mano en `StationMap.tsx` (paso 9, sin empezar). La API sí existe desde el 2026-08-05
+(`GET /api/precios` en `backend/src/index.ts`, Hono) — pero lee `v_precios_surtidor`, una vista
+con 36.739 filas reales que **no viene del worker `importarSurtidorEnergia.ts` ni de ninguna
+migración de este repo**: alguien la cargó directo en Postgres. Las tablas normalizadas de
+`schema.ts` (`estaciones`, `precios_actuales`, etc.) siguen sin migrar. Detalle en `CLAUDE.md`.
 
 ### ¿PARA QUÉ sirve?
 
@@ -111,10 +115,10 @@ Una sola fuente de verdad del modelo de datos: `backend/src/models/schema.ts`.
 ## 4. Estado de salud
 
 ```
-🔴 CRÍTICO   — No existe la API. backend/src/routes, /services y /utils están vacíos (.gitkeep).
-               backend/package.json ni siquiera tiene un script `dev` o `start`:
-               el backend no se puede levantar.
-
+🟡 MEJORABLE — La API (paso 8) lee `v_precios_surtidor`, una tabla/vista cargada a mano en
+               Postgres por fuera del repo — no del worker de ingesta ni de una migración
+               versionada. Las 8 tablas normalizadas de schema.ts siguen sin migrar. Hay que
+               decidir si eso queda así o se migra a las tablas propias (ver CLAUDE.md).
 🟡 MEJORABLE — Dos package.json y dos package-lock.json (frontend, backend), todos con npm.
                Pendiente unificar en pnpm workspaces (paso 4, coordinar con IT).
 🟡 MEJORABLE — .github/workflows/ existe pero está vacío. No hay CI.
@@ -129,6 +133,8 @@ Una sola fuente de verdad del modelo de datos: `backend/src/models/schema.ts`.
 
 🟢 SANO      — Una sola fuente de verdad del modelo de datos: Drizzle. Prisma eliminado (paso 2).
 🟢 SANO      — Linter y formateador configurados: Biome en raíz + frontend + backend (paso 5).
+🟢 SANO      — La API existe y responde con datos reales: GET /api/precios (Hono), probado
+               contra la base de producción (paso 8, arrancado 2026-08-05).
 🟢 SANO      — Diseño de la base de datos. 7 tablas con decisiones justificadas en comentarios,
                índices pensados para las consultas reales, unique constraints para upsert idempotente.
 🟢 SANO      — Manejo de secretos. Nunca se commiteó un .env (verificado en el historial completo).
@@ -183,7 +189,7 @@ Ordenado por **riesgo bajo primero**. Los pasos 1 a 6 no tocan nada de lo que se
 | 5 | ✅ ~~Configurar **Biome** (lint + formato en una herramienta)~~ | **Cierra N1** | bajo | 45 min |
 | 6 | CI en GitHub Actions: lint + typecheck — 🤝 **coordinar si incluye deploy** | Red de seguridad antes de escribir código nuevo | bajo* | 45 min |
 | 7 | Limpiar ramas · resolver `Dev` vs `develop` — 🤝 **NO borrar nada sin preguntar** | Historial navegable | **alto** | 30 min |
-| 8 | **Construir la API** (Hono sobre el schema existente) | Desbloquea el producto | medio | varias sesiones |
+| 8 | 🟡 **Construir la API** (Hono) — arrancada 2026-08-05, lee `v_precios_surtidor` en vez del schema normalizado | Desbloquea el producto | medio | varias sesiones |
 | 9 | Conectar el frontend a datos reales (reemplazar `mockPrices.ts`) | El producto empieza a existir | medio | — |
 | 10 | Refactor del mapa (tipos + sacar el HTML por strings) | Seguridad y mantenibilidad | medio | — |
 
@@ -236,6 +242,8 @@ npm run db:seed:estaciones
 | 2026-07-30 | Si hace falta API separada → Hono, no Express. | ⏳ pendiente (paso 8) |
 | 2026-08-04 | react-leaflet se descarta (no se usaba; v5 requiere React 19, incompatible con React 18 pineado). leaflet + @types/leaflet se conservan en frontend/package.json. | ✅ ejecutado (paso 3) |
 | 2026-08-04 | Biome como linter + formateador único, con `biome.json` raíz y configs anidados via `extends: "//"`. `backend/drizzle/` excluido (archivos generados). | ✅ ejecutado (paso 5) |
+| 2026-08-05 | Se confirma Hono (no Express) para la API — `CLAUDE.md` tenía una nota vieja de Express, corregida. | ✅ ejecutado (paso 8) |
+| 2026-08-05 | La API arranca leyendo `v_precios_surtidor` (datos reales, cargados por fuera del repo) en vez de migrar primero las 8 tablas de `schema.ts`, para ir rápido. Pendiente decidir si se migra más adelante. | ✅ ejecutado, ⏳ decisión de fondo pendiente |
 
 > Las decisiones que cambien el rumbo se anotan también en `../../_registro/BITACORA.md`.
 > Las que ameriten justificación larga van como ADR en `docs/adr/` (plantilla en `../../_plantillas/ADR.md`).

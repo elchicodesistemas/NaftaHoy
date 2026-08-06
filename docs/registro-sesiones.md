@@ -11,6 +11,28 @@
 
 ---
 
+## 2026-08-05 — Máquina 1 (personal), continuación
+
+- Verificado `.env`: nunca estuvo en git (búsqueda completa del historial), y sigue existiendo
+  en disco acá con `DATABASE_URL` válida — no había nada que "recuperar".
+- Conexión a `naftahoy_prueba` probada y funcionando. Hallazgo importante: el permiso `CREATE`
+  sobre `public` que estaba bloqueado ya fue otorgado (no se sabe cuándo ni por quién), y existe
+  una tabla `staging_precios_surtidor` (36.739 filas) + vista `v_precios_surtidor` cargadas por
+  fuera del repo — no por `importarSurtidorEnergia.ts` ni ninguna migración. Las 8 tablas de
+  `schema.ts` siguen sin migrar.
+- Decisión (con el usuario): arrancar la API leyendo `v_precios_surtidor` ya, no migrar el
+  schema normalizado todavía.
+- Paso 8 arrancado: Hono + `@hono/node-server` instalados, `backend/src/index.ts` (server),
+  `backend/src/models/staging.ts` (vista existente modelada con Drizzle `.existing()`, fuera
+  del scope de `drizzle.config.ts` a propósito), `backend/src/routes/precios.ts`
+  (`GET /api/precios` con filtros `producto`/`empresa`/`provincia`/`region`/`limit`/`offset`).
+  Scripts `dev`/`start` agregados. Probado en caliente contra la base real, responde bien.
+- `CLAUDE.md` corregido: la nota vieja de Express era stale (la ficha ya decía Hono desde el
+  30/7), bloqueante de permisos actualizado, hallazgo de `v_precios_surtidor` documentado.
+- `FICHA_MADUREZ.md` actualizada acorde.
+
+---
+
 ## 2026-08-05 — Máquina 1 (personal)
 
 - Cerrados los pasos 2, 3 y 5 del plan de acción de `FICHA_MADUREZ.md`:

@@ -46,6 +46,8 @@ services:
     build:
       context: ../../frontend
       dockerfile: ../infrastructure/docker/frontend.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://naftahoy.com/api
     container_name: naftahoy-frontend
     restart: always
     environment:

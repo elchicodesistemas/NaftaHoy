@@ -26,8 +26,6 @@ RUN npx prisma generate
 
 COPY --from=builder /app/dist ./dist
 
-RUN mkdir -p /app/data
-
 EXPOSE 3001
 
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]

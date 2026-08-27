@@ -149,7 +149,8 @@ export class GovIngestionService {
                 if (!isNaN(parsed.getTime())) effectiveDate = parsed;
               }
 
-              pricesMap.set(priceKey, {
+              const previous = pricesMap.get(priceKey);
+              if (!previous || effectiveDate > previous.effectiveDate) pricesMap.set(priceKey, {
                 stationKey,
                 fuelType: productInfo.type,
                 fuelTypeName: productInfo.name,
@@ -253,7 +254,8 @@ export class GovIngestionService {
             if (!isNaN(parsed.getTime())) effectiveDate = parsed;
           }
 
-          pricesMap.set(priceKey, {
+          const previous = pricesMap.get(priceKey);
+          if (!previous || effectiveDate > previous.effectiveDate) pricesMap.set(priceKey, {
             stationKey,
             fuelType: productInfo.type,
             fuelTypeName: productInfo.name,
@@ -340,10 +342,11 @@ export class GovIngestionService {
 
         return prisma.priceRecord.upsert({
           where: {
-            stationId_fuelType_timeSlot: {
+            stationId_fuelType_timeSlot_effectiveDate: {
               stationId,
               fuelType: p.fuelType,
               timeSlot: p.timeSlot,
+              effectiveDate: p.effectiveDate,
             },
           },
           create: {
@@ -355,10 +358,7 @@ export class GovIngestionService {
             price: p.price,
             effectiveDate: p.effectiveDate,
           },
-          update: {
-            price: p.price,
-            effectiveDate: p.effectiveDate,
-          },
+          update: { price: p.price, fuelTypeName: p.fuelTypeName, originalProduct: p.originalProduct },
         });
       }).filter(Boolean);
 

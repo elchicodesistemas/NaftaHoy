@@ -62,8 +62,8 @@ export default function CommunityReports() {
     });
 
     if (newReport) {
-      setReports((prev) => [newReport, ...prev]);
       setPriceInput("");
+      alert("Gracias. Tu reporte quedó pendiente de revisión antes de publicarse.");
     }
     setLoading(false);
   };

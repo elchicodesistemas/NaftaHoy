@@ -13,12 +13,13 @@ interface StatsProps {
 }
 
 export default function StatsBar({ stats }: StatsProps) {
-  const superAvg = stats ? `$${stats.superAvg.toLocaleString("es-AR")}` : "$1.999";
-  const variation = stats ? `+${stats.variationPct}%` : "+2.5%";
-  const cheapestBrand = stats?.cheapestBrand || "Puma";
-  const cheapestSub = stats ? `$${stats.cheapestPrice.toLocaleString("es-AR")}/lt` : "$1.979/lt";
-  const mostExpensiveBrand = stats?.mostExpensiveBrand || "Shell";
-  const mostExpensiveSub = stats ? `$${stats.mostExpensivePrice.toLocaleString("es-AR")}/lt` : "$2.099/lt";
+  const hasData = Boolean(stats && stats.superAvg > 0);
+  const superAvg = hasData ? `$${stats!.superAvg.toLocaleString("es-AR")}` : "—";
+  const variation = hasData ? `${stats!.variationPct > 0 ? "+" : ""}${stats!.variationPct}%` : "—";
+  const cheapestBrand = hasData ? stats!.cheapestBrand : "—";
+  const cheapestSub = hasData ? `$${stats!.cheapestPrice.toLocaleString("es-AR")}/lt` : "sin datos";
+  const mostExpensiveBrand = hasData ? stats!.mostExpensiveBrand : "—";
+  const mostExpensiveSub = hasData ? `$${stats!.mostExpensivePrice.toLocaleString("es-AR")}/lt` : "sin datos";
 
   const statItems = [
     { label: "Nafta Súper", value: superAvg, sub: "promedio", color: "text-brand-primary" },

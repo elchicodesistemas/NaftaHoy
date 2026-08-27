@@ -1,4 +1,4 @@
-import { Company, companies as fallbackCompanies, weeklyTrend as fallbackWeeklyTrend } from "@/data/mockPrices";
+import { Company } from "@/data/mockPrices";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -55,20 +55,15 @@ export const api = {
   async getPriceSummary(province?: string): Promise<PriceSummaryResponse> {
     try {
       const url = province ? `${API_BASE}/prices/summary?province=${encodeURIComponent(province)}` : `${API_BASE}/prices/summary`;
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(url, { next: { revalidate: 60 } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
-      console.warn("[API] Usando fallback mock para resumen de precios:", err);
+      console.warn("[API] No se pudo obtener el resumen de precios:", err);
       return {
-        companies: fallbackCompanies,
+        companies: [],
         stats: {
-          superAvg: 1999,
-          variationPct: 2.5,
-          cheapestBrand: "Puma",
-          cheapestPrice: 1979,
-          mostExpensiveBrand: "Shell",
-          mostExpensivePrice: 2099,
+          superAvg: 0, variationPct: 0, cheapestBrand: "-", cheapestPrice: 0, mostExpensiveBrand: "-", mostExpensivePrice: 0,
           totalStations: 0,
           lastUpdated: new Date().toISOString(),
         },
@@ -82,7 +77,7 @@ export const api = {
       const params = new URLSearchParams();
       if (brand && brand !== "all") params.append("brand", brand);
       if (province) params.append("province", province);
-      params.append("limit", "100");
+      params.append("limit", "150");
 
       const res = await fetch(`${API_BASE}/stations?${params.toString()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -100,7 +95,7 @@ export const api = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
-      return fallbackWeeklyTrend;
+      return [];
     }
   },
 

@@ -13,10 +13,17 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "*", // En dev permitimos cualquier origen; en prod se puede configurar con config.corsOrigin
+  origin: config.corsOrigin,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
 app.use(express.json());
+app.disable("x-powered-by");
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
 
 // Logger simple
 app.use((req, res, next) => {

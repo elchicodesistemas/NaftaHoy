@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -43,7 +43,8 @@ model PriceRecord {
   effectiveDate   DateTime
   updatedAt       DateTime @updatedAt
 
-  @@unique([stationId, fuelType, timeSlot])
+  @@unique([stationId, fuelType, timeSlot, effectiveDate])
+  @@index([stationId, fuelType, timeSlot, effectiveDate])
   @@index([fuelType])
   @@index([price])
 }
@@ -69,7 +70,10 @@ model CommunityReport {
   fuelType    String
   price       Float
   likes       Int      @default(0)
+  status      String   @default("PENDING")
+  ipHash      String?
   createdAt   DateTime @default(now())
 
   @@index([createdAt])
+  @@index([status])
 }

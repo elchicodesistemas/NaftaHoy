@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { govIngestionService } from "../services/govIngestionService";
 import { prisma } from "../config/prisma";
+import { requireSyncToken } from "../utils/security";
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.get("/status", async (req: Request, res: Response) => {
 });
 
 // POST /api/sync
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", requireSyncToken, async (req: Request, res: Response) => {
   try {
     // Iniciar sincronización en background o síncrono si se solicita
     const asyncMode = req.query.async === "true";

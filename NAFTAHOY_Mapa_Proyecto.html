@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAFTAHOY - Mapa Conceptual del Proyecto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 40px 20px 20px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0f 100%);
+    border-bottom: 1px solid #1e1e3a;
+  }
+  .header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f59e0b, #ef4444, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    color: #888;
+    margin-top: 8px;
+  }
+  .header .tagline {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 18px;
+    border: 1px solid #f59e0b44;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #f59e0b;
+    background: #f59e0b11;
+  }
+
+  /* Navigation Tabs */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 22px;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    background: #12121f;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+  .tab:hover { border-color: #f59e0b88; color: #f59e0b; }
+  .tab.active { background: #f59e0b22; border-color: #f59e0b; color: #f59e0b; }
+
+  /* Sections */
+  .section {
+    display: none;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .section-desc {
+    color: #777;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  /* Cards Grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .card {
+    background: #13131f;
+    border: 1px solid #1e1e3a;
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover { border-color: #f59e0b55; transform: translateY(-2px); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent, #f59e0b), transparent);
+  }
+  .card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .card h3 { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .card p { font-size: 0.85rem; color: #999; line-height: 1.6; }
+  .card .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 10px;
+    margin-right: 4px;
+  }
+  .badge-green { background: #10b98122; color: #10b981; border: 1px solid #10b98144; }
+  .badge-yellow { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; }
+  .badge-red { background: #ef444422; color: #ef4444; border: 1px solid #ef444444; }
+  .badge-blue { background: #3b82f622; color: #3b82f6; border: 1px solid #3b82f644; }
+  .badge-purple { background: #8b5cf622; color: #8b5cf6; border: 1px solid #8b5cf644; }
+
+  /* Flow Diagram */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+    padding: 20px 0;
+  }
+  .flow-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .flow-node {
+    background: #13131f;
+    border: 1px solid #1e1e3a;
+    border-radius: 10px;
+    padding: 16px 24px;
+    text-align: center;
+    min-width: 160px;
+    transition: all 0.3s;
+  }
+  .flow-node:hover { border-color: #f59e0b88; }
+  .flow-node .icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .flow-node .label { font-size: 0.8rem; font-weight: 600; color: #fff; }
+  .flow-node .sub { font-size: 0.7rem; color: #666; margin-top: 4px; }
+  .flow-arrow {
+    text-align: center;
+    padding: 8px 0;
+    color: #f59e0b;
+    font-size: 1.2rem;
+  }
+  .flow-arrow-label {
+    font-size: 0.7rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  /* Tech Stack */
+  .stack-group { margin-bottom: 24px; }
+  .stack-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .stack-items { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #13131f;
+    border: 1px solid #1e1e3a;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #ccc;
+    transition: all 0.3s;
+  }
+  .stack-item:hover { border-color: #f59e0b55; }
+  .stack-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dot-color, #f59e0b);
+  }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 30px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #f59e0b, #ef4444, #8b5cf6);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+    padding: 18px 24px;
+    background: #13131f;
+    border: 1px solid #1e1e3a;
+    border-radius: 10px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -25px; top: 24px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #f59e0b;
+    border: 2px solid #0a0a0f;
+  }
+  .timeline-item h4 { font-size: 0.95rem; color: #fff; margin-bottom: 4px; }
+  .timeline-item .phase { font-size: 0.7rem; color: #f59e0b; font-weight: 600; margin-bottom: 6px; }
+  .timeline-item p { font-size: 0.82rem; color: #999; line-height: 1.5; }
+
+  /* Table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #1e1e3a;
+  }
+  .data-table td {
+    padding: 12px 14px;
+    font-size: 0.83rem;
+    color: #bbb;
+    border-bottom: 1px solid #1e1e3a11;
+  }
+  .data-table tr:hover td { background: #13131f; }
+
+  /* Monetization */
+  .money-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .money-card {
+    background: #13131f;
+    border: 1px solid #1e1e3a;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .money-card:hover { border-color: #10b98155; }
+  .money-card .amount { font-size: 1.4rem; font-weight: 700; color: #10b981; margin: 8px 0; }
+  .money-card .label { font-size: 0.8rem; color: #666; }
+  .money-card h4 { font-size: 0.95rem; color: #fff; margin-bottom: 4px; }
+
+  /* Competitor */
+  .competitor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .competitor {
+    background: #13131f;
+    border: 1px solid #1e1e3a;
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .competitor h4 { font-size: 0.9rem; color: #fff; margin-bottom: 6px; }
+  .competitor p { font-size: 0.78rem; color: #888; line-height: 1.5; }
+  .competitor a { color: #3b82f6; text-decoration: none; font-size: 0.78rem; }
+  .competitor a:hover { text-decoration: underline; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 30px;
+    color: #444;
+    font-size: 0.75rem;
+    border-top: 1px solid #1e1e3a;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>NAFTAHOY</h1>
+  <p class="subtitle">Precios de Combustibles en Tiempo Real — Argentina</p>
+  <span class="tagline">Documento de Arquitectura & Mapa del Proyecto v1.0</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showSection('overview')">Vision General</div>
+  <div class="tab" onclick="showSection('flow')">Flujo de Datos</div>
+  <div class="tab" onclick="showSection('sources')">Fuentes de Datos</div>
+  <div class="tab" onclick="showSection('stack')">Stack Tecnológico</div>
+  <div class="tab" onclick="showSection('roadmap')">Roadmap</div>
+  <div class="tab" onclick="showSection('monetization')">Monetización</div>
+  <div class="tab" onclick="showSection('competitors')">Competencia</div>
+</div>
+
+<!-- ========== VISION GENERAL ========== -->
+<div class="section active" id="overview">
+  <h2 class="section-title">Visión General del Proyecto</h2>
+  <p class="section-desc">Portal web de referencia para consultar precios de combustibles actualizados en Argentina</p>
+
+  <div class="cards">
+    <div class="card" style="--accent: #f59e0b;">
+      <div class="card-icon">⛽</div>
+      <h3>¿Qué es NaftaHoy?</h3>
+      <p>Un portal web que muestra los precios actualizados de nafta, diésel y GNC de todas las petroleras de Argentina (YPF, Shell, Axion, Puma, PAE, etc.), siguiendo el modelo exitoso de DolarHoy.com pero aplicado al mercado de combustibles.</p>
+      <span class="badge badge-yellow">Dominio: NaftaHoy.com</span>
+      <span class="badge badge-blue">Server: Ubuntu</span>
+    </div>
+
+    <div class="card" style="--accent: #10b981;">
+      <div class="card-icon">🎯</div>
+      <h3>Objetivo Principal</h3>
+      <p>Convertirse en la fuente #1 de consulta de precios de combustibles en Argentina. Consumir APIs de petroleras y fuentes oficiales, almacenar históricos, y monetizar mediante publicidad y servicios premium (como hace DolarHoy con las cotizaciones).</p>
+      <span class="badge badge-green">Monetizable</span>
+      <span class="badge badge-green">Escalable</span>
+    </div>
+
+    <div class="card" style="--accent: #3b82f6;">
+      <div class="card-icon">👥</div>
+      <h3>Público Objetivo</h3>
+      <p>Conductores que buscan el mejor precio antes de cargar. Flotas de transporte y logística. Medios de comunicación que necesitan datos de referencia. Analistas del sector energético y economistas.</p>
+      <span class="badge badge-blue">B2C</span>
+      <span class="badge badge-purple">B2B</span>
+    </div>
+
+    <div class="card" style="--accent: #8b5cf6;">
+      <div class="card-icon">📊</div>
+      <h3>Propuesta de Valor</h3>
+      <p>Información centralizada, actualizada y confiable. Comparativas entre petroleras por zona. Históricos de precios y tendencias. Alertas de cambio de precios. Todo en una interfaz rápida, mobile-first y SEO optimizada.</p>
+      <span class="badge badge-purple">Diferenciador</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FLUJO DE DATOS ========== -->
+<div class="section" id="flow">
+  <h2 class="section-title">Diagrama de Flujo de Datos</h2>
+  <p class="section-desc">Cómo los datos viajan desde las fuentes hasta el usuario final</p>
+
+  <div class="flow">
+    <!-- Layer 1: Sources -->
+    <div class="flow-row">
+      <div class="flow-node" style="border-color: #ef444466;">
+        <div class="icon">🛢️</div>
+        <div class="label">Shell API</div>
+        <div class="sub">PriceList API</div>
+      </div>
+      <div class="flow-node" style="border-color: #3b82f666;">
+        <div class="icon">🏛️</div>
+        <div class="label">Sec. Energía</div>
+        <div class="sub">datos.energia.gob.ar</div>
+      </div>
+      <div class="flow-node" style="border-color: #f59e0b66;">
+        <div class="icon">⛽</div>
+        <div class="label">YPF / Axion / Puma</div>
+        <div class="sub">Web Scraping + APIs</div>
+      </div>
+      <div class="flow-node" style="border-color: #10b98166;">
+        <div class="icon">📰</div>
+        <div class="label">Fuentes Secundarias</div>
+        <div class="sub">surtidores.com.ar, datos.gob.ar</div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">▼</div>
+    <div class="flow-arrow-label">APIs REST / Scraping / Cron Jobs</div>
+
+    <!-- Layer 2: Ingestion -->
+    <div class="flow-row">
+      <div class="flow-node" style="border-color: #f59e0b; background: #f59e0b11; min-width: 500px;">
+        <div class="icon">⚙️</div>
+        <div class="label">NAFTAHOY BACKEND — Servidor Ubuntu</div>
+        <div class="sub">API Gateway + Cron Workers + Data Normalizer</div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">▼</div>
+    <div class="flow-arrow-label">Normalización, validación y almacenamiento</div>
+
+    <!-- Layer 3: Storage -->
+    <div class="flow-row">
+      <div class="flow-node" style="border-color: #8b5cf666;">
+        <div class="icon">🗄️</div>
+        <div class="label">Base de Datos</div>
+        <div class="sub">PostgreSQL / MySQL</div>
+      </div>
+      <div class="flow-node" style="border-color: #ef444466;">
+        <div class="icon">⚡</div>
+        <div class="label">Cache</div>
+        <div class="sub">Redis</div>
+      </div>
+      <div class="flow-node" style="border-color: #10b98166;">
+        <div class="icon">📁</div>
+        <div class="label">Históricos</div>
+        <div class="sub">Series temporales</div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">▼</div>
+    <div class="flow-arrow-label">API REST propia de NaftaHoy</div>
+
+    <!-- Layer 4: Output -->
+    <div class="flow-row">
+      <div class="flow-node" style="border-color: #3b82f666;">
+        <div class="icon">🌐</div>
+        <div class="label">Web App</div>
+        <div class="sub">NaftaHoy.com (SSR)</div>
+      </div>
+      <div class="flow-node" style="border-color: #10b98166;">
+        <div class="icon">📱</div>
+        <div class="label">Mobile PWA</div>
+        <div class="sub">Responsive + Instalable</div>
+      </div>
+      <div class="flow-node" style="border-color: #f59e0b66;">
+        <div class="icon">🔌</div>
+        <div class="label">API Pública</div>
+        <div class="sub">Para terceros (freemium)</div>
+      </div>
+      <div class="flow-node" style="border-color: #8b5cf666;">
+        <div class="icon">📧</div>
+        <div class="label">Alertas</div>
+        <div class="sub">Email / Push / Telegram</div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">▼</div>
+
+    <!-- Layer 5: Users -->
+    <div class="flow-row">
+      <div class="flow-node" style="border-color: #10b981; background: #10b98111; min-width: 500px;">
+        <div class="icon">👥</div>
+        <div class="label">USUARIOS FINALES</div>
+        <div class="sub">Conductores • Flotas • Medios • Analistas • Desarrolladores</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FUENTES DE DATOS ========== -->
+<div class="section" id="sources">
+  <h2 class="section-title">Fuentes de Datos Identificadas</h2>
+  <p class="section-desc">APIs y fuentes verificadas para obtener precios de combustibles</p>
+
+  <div class="cards">
+    <div class="card" style="--accent: #10b981;">
+      <div class="card-icon">✅</div>
+      <h3>Shell Developer Portal — PriceList API</h3>
+      <p>API oficial de Shell que permite obtener precios de estaciones Shell y sitios asociados. Incluye precios en surtidor y descuentos aplicables. Requiere registro como developer partner.</p>
+      <p style="margin-top:8px; font-size:0.78rem; color:#3b82f6;">developer.shell.com/api-catalog</p>
+      <span class="badge badge-green">API REST</span>
+      <span class="badge badge-green">Oficial</span>
+      <span class="badge badge-yellow">Requiere registro</span>
+    </div>
+
+    <div class="card" style="--accent: #10b981;">
+      <div class="card-icon">✅</div>
+      <h3>Secretaría de Energía — Datos Abiertos</h3>
+      <p>Por Resolución 314/2016, las estaciones de servicio DEBEN declarar precios dentro de 8hs de cualquier cambio. Datos disponibles en datos.energia.gob.ar y datos.gob.ar. Incluye precios históricos y datos por estación.</p>
+      <p style="margin-top:8px; font-size:0.78rem; color:#3b82f6;">datos.energia.gob.ar • datos.gob.ar</p>
+      <span class="badge badge-green">Datos Abiertos</span>
+      <span class="badge badge-green">Oficial Gov</span>
+      <span class="badge badge-green">Gratuito</span>
+    </div>
+
+    <div class="card" style="--accent: #f59e0b;">
+      <div class="card-icon">🔧</div>
+      <h3>Precios en Surtidor — Mapa Web</h3>
+      <p>Sistema web del Ministerio de Energía con mapa interactivo. No tiene API pública pero existe un scraper open source en GitHub (andytow/surtidores). Datos casi en tiempo real.</p>
+      <p style="margin-top:8px; font-size:0.78rem; color:#3b82f6;">preciosensurtidor.energia.gob.ar</p>
+      <span class="badge badge-yellow">Scraping</span>
+      <span class="badge badge-green">Tiempo real</span>
+      <span class="badge badge-blue">Open Source</span>
+    </div>
+
+    <div class="card" style="--accent: #f59e0b;">
+      <div class="card-icon">🔧</div>
+      <h3>YPF / Axion / Puma — Webs Oficiales</h3>
+      <p>Las petroleras publican precios en sus webs oficiales. No ofrecen APIs públicas (excepto Shell), pero se pueden scrapear de forma controlada y respetuosa con cron jobs programados.</p>
+      <span class="badge badge-yellow">Scraping</span>
+      <span class="badge badge-red">Sin API pública</span>
+    </div>
+
+    <div class="card" style="--accent: #3b82f6;">
+      <div class="card-icon">📊</div>
+      <h3>Datos.gob.ar — Dataset Históricos</h3>
+      <p>Dataset oficial con precios históricos de combustibles. Formato CSV descargable. Ideal para construir gráficos de tendencia y análisis comparativo entre períodos.</p>
+      <p style="margin-top:8px; font-size:0.78rem; color:#3b82f6;">datos.gob.ar/dataset/energia-precios-surtidor</p>
+      <span class="badge badge-blue">CSV</span>
+      <span class="badge badge-green">Gratuito</span>
+      <span class="badge badge-green">Histórico</span>
+    </div>
+
+    <div class="card" style="--accent: #8b5cf6;">
+      <div class="card-icon">🔮</div>
+      <h3>A investigar: APIs de otras petroleras</h3>
+      <p>Verificar si PAE (Pan American Energy), Gulf, Refinor u otras petroleras regionales tienen portales de desarrolladores o datos públicos. Contactar directamente para partnerships de datos.</p>
+      <span class="badge badge-purple">Por investigar</span>
+      <span class="badge badge-red">Prioridad alta</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STACK TECNOLÓGICO ========== -->
+<div class="section" id="stack">
+  <h2 class="section-title">Stack Tecnológico Recomendado</h2>
+  <p class="section-desc">Tecnologías seleccionadas para rendimiento, SEO y escalabilidad</p>
+
+  <div class="stack-group">
+    <div class="stack-label">Frontend</div>
+    <div class="stack-items">
+      <div class="stack-item"><div class="dot" style="--dot-color:#61dafb"></div> Next.js 14+ (React SSR)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#38bdf8"></div> Tailwind CSS</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#f7df1e"></div> TypeScript</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#ff6384"></div> Chart.js / Recharts</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#4ade80"></div> PWA (Service Workers)</div>
+    </div>
+  </div>
+
+  <div class="stack-group">
+    <div class="stack-label">Backend</div>
+    <div class="stack-items">
+      <div class="stack-item"><div class="dot" style="--dot-color:#68a063"></div> Node.js + Express / Fastify</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#f7df1e"></div> TypeScript</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#8b5cf6"></div> Cron Jobs (node-cron)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#ef4444"></div> Puppeteer / Cheerio (scraping)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#3b82f6"></div> Axios (HTTP client)</div>
+    </div>
+  </div>
+
+  <div class="stack-group">
+    <div class="stack-label">Base de Datos & Cache</div>
+    <div class="stack-items">
+      <div class="stack-item"><div class="dot" style="--dot-color:#336791"></div> PostgreSQL (principal)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#dc382d"></div> Redis (cache + pub/sub)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#13aa52"></div> Prisma ORM</div>
+    </div>
+  </div>
+
+  <div class="stack-group">
+    <div class="stack-label">Infraestructura (Ubuntu Server)</div>
+    <div class="stack-items">
+      <div class="stack-item"><div class="dot" style="--dot-color:#2496ed"></div> Docker + Docker Compose</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#009639"></div> Nginx (reverse proxy + SSL)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#f59e0b"></div> Let's Encrypt (HTTPS)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#0db7ed"></div> PM2 (process manager)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#333"></div> GitHub Actions (CI/CD)</div>
+    </div>
+  </div>
+
+  <div class="stack-group">
+    <div class="stack-label">SEO & Analytics</div>
+    <div class="stack-items">
+      <div class="stack-item"><div class="dot" style="--dot-color:#fbbc04"></div> Google Analytics 4</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#4285f4"></div> Google Search Console</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#0f9d58"></div> Schema.org (Structured Data)</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#ea4335"></div> Sitemap dinámico</div>
+      <div class="stack-item"><div class="dot" style="--dot-color:#ff6900"></div> Open Graph / Twitter Cards</div>
+    </div>
+  </div>
+
+  <div class="stack-group">
+    <div class="stack-label">¿Por qué este Stack?</div>
+    <div class="cards" style="margin-top:8px;">
+      <div class="card" style="--accent:#3b82f6;">
+        <h3>SEO es clave</h3>
+        <p>DolarHoy.com recibe 62% de tráfico directo y 31% de búsqueda orgánica. Next.js con SSR genera HTML en el server, ideal para que Google indexe los precios. Esto es el factor #1 de éxito para un portal de este tipo.</p>
+      </div>
+      <div class="card" style="--accent:#10b981;">
+        <h3>Un solo lenguaje</h3>
+        <p>TypeScript en frontend y backend = mismo equipo puede trabajar todo. Reduce complejidad, facilita contrataciones futuras, y tiene el ecosistema más grande de paquetes (npm).</p>
+      </div>
+      <div class="card" style="--accent:#f59e0b;">
+        <h3>Velocidad de carga</h3>
+        <p>Redis cachea los precios más consultados. Nginx sirve assets estáticos. Next.js genera páginas estáticas donde puede (ISR). El usuario ve precios en &lt;1 segundo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ROADMAP ========== -->
+<div class="section" id="roadmap">
+  <h2 class="section-title">Roadmap de Desarrollo</h2>
+  <p class="section-desc">Plan de ejecución por fases</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="phase">FASE 0 — Semana 1-2 · Investigación & Setup</div>
+      <h4>Preparación del Terreno</h4>
+      <p>Configurar servidor Ubuntu (Docker, Nginx, SSL con Let's Encrypt). Registrarse en Shell Developer Portal y obtener API key. Analizar la estructura de datos de la Secretaría de Energía. Probar el scraper open-source de surtidores. Definir esquema de base de datos. Configurar repositorio Git y CI/CD básico.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase">FASE 1 — Semana 3-5 · MVP Backend</div>
+      <h4>Motor de Datos</h4>
+      <p>Desarrollar workers de ingesta (cron jobs) para cada fuente de datos. Crear el normalizador de datos (diferentes fuentes → formato unificado). Montar PostgreSQL + Redis. Construir la API REST interna. Implementar logs y monitoreo básico. Primer scraping funcional de al menos 2 fuentes.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase">FASE 2 — Semana 6-8 · MVP Frontend</div>
+      <h4>La Vidriera</h4>
+      <p>Diseñar la home page al estilo DolarHoy (precios grandes, claros, con variación). Crear páginas por petrolera, por tipo de combustible, por zona. Implementar gráficos de evolución histórica. SEO on-page: meta tags, schema.org, sitemap. Mobile-first responsive design. Conectar con la API interna.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase">FASE 3 — Semana 9-10 · Lanzamiento Beta</div>
+      <h4>Salida al Mundo</h4>
+      <p>Deploy en producción. Configurar dominio NaftaHoy.com. Registrar en Google Search Console y enviar sitemap. Instalar Google Analytics. Testing de carga y rendimiento. Feedback de usuarios beta.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase">FASE 4 — Semana 11-14 · Crecimiento</div>
+      <h4>Tracción & Monetización</h4>
+      <p>Integrar Google AdSense / redes de publicidad. Desarrollar sistema de alertas (email, push). Crear API pública con plan freemium. Agregar comparador de estaciones por cercanía. Contenido editorial (análisis de mercado, notas). Redes sociales automatizadas.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase">FASE 5 — Mes 4+ · Escala</div>
+      <h4>Expansión</h4>
+      <p>App móvil nativa o PWA avanzada. Geolocalización (estación más cercana + más barata). Partnerships con estaciones de servicio. Dashboard premium para flotas/empresas. Expansión a otros países de la región (GNaftaHoy, etc.).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MONETIZACIÓN ========== -->
+<div class="section" id="monetization">
+  <h2 class="section-title">Estrategia de Monetización</h2>
+  <p class="section-desc">Modelo de ingresos diversificado, inspirado en DolarHoy.com</p>
+
+  <div class="money-cards">
+    <div class="money-card">
+      <div class="card-icon">📢</div>
+      <h4>Publicidad Display</h4>
+      <div class="amount">Ingreso base</div>
+      <div class="label">Google AdSense + redes programáticas. Banners en home, páginas de detalle y comparativas. CPM/CPC según tráfico. Es el modelo principal de DolarHoy.com.</div>
+    </div>
+    <div class="money-card">
+      <div class="card-icon">🔌</div>
+      <h4>API as a Service</h4>
+      <div class="amount">Freemium</div>
+      <div class="label">API pública con tier gratuito (100 req/día) y planes pagos para desarrolladores, apps, medios y empresas que necesiten datos de precios. Modelo SaaS recurrente.</div>
+    </div>
+    <div class="money-card">
+      <div class="card-icon">⭐</div>
+      <h4>Estaciones Destacadas</h4>
+      <div class="amount">Sponsorship</div>
+      <div class="label">Las estaciones de servicio pagan por aparecer destacadas en el buscador o en los resultados de "más barata cerca tuyo". Similar a Google Maps promoted pins.</div>
+    </div>
+    <div class="money-card">
+      <div class="card-icon">📊</div>
+      <h4>Datos & Reportes</h4>
+      <div class="amount">B2B Premium</div>
+      <div class="label">Reportes analíticos del mercado de combustibles para consultoras, petroleras, fondos de inversión. Datos históricos procesados, tendencias y predicciones.</div>
+    </div>
+    <div class="money-card">
+      <div class="card-icon">📧</div>
+      <h4>Alertas Premium</h4>
+      <div class="amount">Suscripción</div>
+      <div class="label">Notificaciones instantáneas de cambio de precios por zona, por petrolera. Versión gratuita limitada + versión premium con filtros avanzados y múltiples canales.</div>
+    </div>
+    <div class="money-card">
+      <div class="card-icon">🏢</div>
+      <h4>Widget Embebible</h4>
+      <div class="amount">Freemium</div>
+      <div class="label">Widget HTML que medios y blogs pueden embeber (como el de DolarHoy). Versión gratis con marca NaftaHoy, versión paga white-label sin marca.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== COMPETENCIA ========== -->
+<div class="section" id="competitors">
+  <h2 class="section-title">Análisis de Competencia</h2>
+  <p class="section-desc">Competidores directos e indirectos identificados</p>
+
+  <div class="competitor-grid">
+    <div class="competitor">
+      <h4>⛽ Naftas.com.ar</h4>
+      <p>Portal con precios de nafta actualizados por localidad. Interfaz funcional pero básica. No ofrece API ni datos históricos avanzados.</p>
+      <a href="https://naftas.com.ar" target="_blank">naftas.com.ar</a>
+      <br><span class="badge badge-yellow" style="margin-top:8px">Competidor directo</span>
+    </div>
+    <div class="competitor">
+      <h4>🏪 Surtidores.com.ar</h4>
+      <p>Portal líder de estaciones de servicio desde el año 2000. Enfocado en noticias del sector + precios. Audiencia establecida pero diseño antiguo.</p>
+      <a href="https://surtidores.com.ar" target="_blank">surtidores.com.ar</a>
+      <br><span class="badge badge-yellow" style="margin-top:8px">Competidor directo</span>
+    </div>
+    <div class="competitor">
+      <h4>📱 Donde cargAR</h4>
+      <p>App móvil privada lanzada en 2023. Enfocada en geolocalización y comparación. Solo mobile, no tiene presencia web fuerte para SEO.</p>
+      <span class="badge badge-blue" style="margin-top:8px">Solo mobile</span>
+    </div>
+    <div class="competitor">
+      <h4>🏛️ Precios en Surtidor (Gov)</h4>
+      <p>Portal oficial del gobierno. Datos confiables pero UX pobre, sin gráficos, sin comparativas, sin históricos accesibles. Es fuente de datos, no competidor real.</p>
+      <a href="https://preciosensurtidor.energia.gob.ar" target="_blank">preciosensurtidor.energia.gob.ar</a>
+      <br><span class="badge badge-green" style="margin-top:8px">Fuente de datos</span>
+    </div>
+    <div class="competitor">
+      <h4>💰 DolarHoy.com (modelo)</h4>
+      <p>No es competidor sino referencia. ~3M visitas/mes. 62% tráfico directo. Monetiza con publicidad display. Demuestra que el modelo funciona en Argentina para datos financieros/precios.</p>
+      <a href="https://dolarhoy.com" target="_blank">dolarhoy.com</a>
+      <br><span class="badge badge-purple" style="margin-top:8px">Modelo a seguir</span>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;">
+    <div class="card" style="--accent:#10b981;">
+      <h3>Ventaja Competitiva de NaftaHoy</h3>
+      <p>Ninguno de los competidores actuales combina: (1) diseño moderno mobile-first, (2) datos de TODAS las petroleras en un solo lugar, (3) API pública para desarrolladores, (4) históricos con gráficos de tendencia, y (5) alertas de cambio de precios. Hay una oportunidad clara de posicionarse como la referencia del sector.</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  NAFTAHOY — Documento de Proyecto v1.0 — Abril 2026<br>
+  Este documento es un punto de partida vivo. Se actualizará con cada fase del proyecto.
+</div>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

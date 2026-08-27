@@ -1,0 +1,95 @@
+import express, { Request, Response } from "express";
+import cors from "cors";
+import { config } from "./config";
+import { prisma } from "./config/prisma";
+import pricesRouter from "./routes/prices";
+import stationsRouter from "./routes/stations";
+import reportsRouter from "./routes/reports";
+import syncRouter from "./routes/sync";
+import { initCronWorker } from "./workers/cronWorker";
+import { govIngestionService } from "./services/govIngestionService";
+
+const app = express();
+
+// Middlewares
+app.use(cors({
+  origin: "*", // En dev permitimos cualquier origen; en prod se puede configurar con config.corsOrigin
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
+app.use(express.json());
+
+// Logger simple
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`[HTTP] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
+// Rutas
+app.use("/api/prices", pricesRouter);
+app.use("/api/stations", stationsRouter);
+app.use("/api/reports", reportsRouter);
+app.use("/api/sync", syncRouter);
+
+// Health check
+app.get("/api/health", async (_req: Request, res: Response) => {
+  try {
+    const stationsCount = await prisma.station.count();
+    const pricesCount = await prisma.priceRecord.count();
+    res.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      database: "connected",
+      stats: {
+        stationsCount,
+        pricesCount,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      status: "error",
+      error: error.message,
+    });
+  }
+});
+
+// Inicialización del servidor
+const server = app.listen(config.port, async () => {
+  console.log(`=============================================`);
+  console.log(` ⛽ NaftaHoy Backend API corriendo en puerto ${config.port}`);
+  console.log(` 📍 Health check: http://localhost:${config.port}/api/health`);
+  console.log(` 📊 Resumen precios: http://localhost:${config.port}/api/prices/summary`);
+  console.log(` 🗺️  Estaciones: http://localhost:${config.port}/api/stations`);
+  console.log(`=============================================`);
+
+  // Iniciar worker de tareas periódicas
+  initCronWorker();
+
+  // Verificar si la base de datos está vacía; si es así, sincronizar en background
+  try {
+    const count = await prisma.station.count();
+    if (count === 0) {
+      console.log("[Boot] Base de datos inicial vacía. Iniciando primera sincronización oficial...");
+      govIngestionService.syncLatestPrices().catch((err) => {
+        console.error("[Boot] Error en primera sincronización:", err);
+      });
+    } else {
+      console.log(`[Boot] Base de datos lista con ${count} estaciones cargadas.`);
+    }
+  } catch (err) {
+    console.warn("[Boot] No se pudo verificar conteo inicial:", err);
+  }
+});
+
+// Graceful shutdown
+process.on("SIGINT", async () => {
+  console.log("\nCerrando servidor...");
+  await prisma.$disconnect();
+  server.close(() => {
+    console.log("Servidor cerrado correctamente.");
+    process.exit(0);
+  });
+});

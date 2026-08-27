@@ -1,0 +1,75 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Station {
+  id          String        @id @default(uuid())
+  govId       Int?          @unique
+  cuit        String?
+  name        String
+  address     String
+  city        String
+  province    String
+  region      String?
+  brand       String        // Normalizado: ypf, shell, axion, puma, dapsa, gulf, blanca, etc.
+  brandName   String        // Nombre visible: YPF, Shell, Axion Energy, Puma Energy, etc.
+  brandId     Int?
+  lat         Float?
+  lng         Float?
+  prices      PriceRecord[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([province])
+  @@index([brand])
+  @@index([lat, lng])
+}
+
+model PriceRecord {
+  id              Int      @id @default(autoincrement())
+  stationId       String
+  station         Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  fuelType        String   // SUPER, PREMIUM, DIESEL, DIESEL_PREMIUM, GNC
+  fuelTypeName    String   // Nafta Súper, Nafta Premium, Diesel, Diesel Premium, GNC
+  originalProduct String
+  timeSlot        String   // Diurno, Nocturno
+  price           Float
+  prevPrice       Float?
+  effectiveDate   DateTime
+  updatedAt       DateTime @updatedAt
+
+  @@unique([stationId, fuelType, timeSlot])
+  @@index([fuelType])
+  @@index([price])
+}
+
+model SyncLog {
+  id               Int       @id @default(autoincrement())
+  source           String
+  status           String    // SUCCESS, FAILED, RUNNING
+  recordsProcessed Int       @default(0)
+  stationsCount    Int       @default(0)
+  error            String?
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+}
+
+model CommunityReport {
+  id          Int      @id @default(autoincrement())
+  userName    String
+  province    String
+  city        String
+  stationName String
+  brand       String
+  fuelType    String
+  price       Float
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}

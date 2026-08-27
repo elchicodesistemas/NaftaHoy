@@ -1,0 +1,83 @@
+# ===========================
+# NaftaHoy — .gitignore
+# ===========================
+
+# --- Dependencias ---
+node_modules/
+.tools/
+vendor/
+.venv/
+__pycache__/
+
+# --- Variables de entorno (NUNCA subir) ---
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# --- Build / Compilados ---
+dist/
+build/
+.next/
+out/
+*.js.map
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Base de datos local ---
+*.sqlite
+*.sqlite3
+*.db
+/data/
+
+# --- Cobertura de tests ---
+coverage/
+.nyc_output/
+
+# --- Temporal ---
+tmp/
+temp/
+*.tmp
+
+# --- Credenciales y secretos ---
+*.pem
+*.key
+*.cert
+credentials.json
+serviceAccountKey.json
+
+# --- Capturas con datos sensibles ---
+infrastructure/*.png
+infrastructure/*.jpg
+infrastructure/*.jpeg
+infrastructure/credenciales*
+
+# --- OS generated ---
+ehthumbs.db
+ehthumbs_vista.db

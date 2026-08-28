@@ -152,7 +152,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
                   Precios por petrolera
                 </h2>
                 <span className="text-xs text-zinc-400">
-                  {data.isRealData ? "Resolución 314/2016" : "Modo vista previa"}
+                  {data.isRealData ? "Resolución 1104/2004 · actualización mensual" : "Modo vista previa"}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

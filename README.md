@@ -1,6 +1,6 @@
 # ⛽ NaftaHoy.com
 
-**Portal de precios de combustibles en tiempo real — Argentina**
+**Portal de precios de combustibles con actualización mensual — Argentina**
 
 NaftaHoy es un portal web que centraliza y muestra los precios actualizados de nafta, diésel y GNC de todas las petroleras de Argentina (YPF, Shell, Axion, Puma, PAE, etc.), siguiendo el modelo de [DolarHoy.com](https://dolarhoy.com) aplicado al mercado de combustibles.
 

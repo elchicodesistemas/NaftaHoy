@@ -19,7 +19,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 leading-relaxed">
-              Portal de precios de combustibles en Argentina. Información pública oficial provista por la Secretaría de Energía bajo la Resolución 314/2016.
+              Portal de precios de combustibles en Argentina. Información pública oficial provista por la Secretaría de Energía bajo la Resolución 1104/2004.
             </p>
           </div>
 

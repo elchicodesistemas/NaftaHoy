@@ -1,45 +1,47 @@
 import axios from "axios";
 import csv from "csv-parser";
-import { Readable } from "stream";
+import { spawn } from "child_process";
+import { createReadStream, createWriteStream } from "fs";
+import { mkdtemp, readFile, rm } from "fs/promises";
+import { tmpdir } from "os";
+import { basename, join } from "path";
+import { pipeline } from "stream/promises";
 import { prisma } from "../config/prisma";
 import { config } from "../config";
 
-interface RawGovRecord {
-  indice_tiempo?: string;
-  idempresa?: string;
-  cuit?: string;
-  empresa?: string;
-  direccion?: string;
-  localidad?: string;
-  provincia?: string;
-  region?: string;
-  idproducto?: string;
-  producto?: string;
-  idtipohorario?: string;
-  tipohorario?: string;
-  precio?: string;
-  fecha_vigencia?: string;
-  idempresabandera?: string;
-  empresabandera?: string;
-  latitud?: string;
-  longitud?: string;
-  geojson?: string;
+type Res1104Record = Record<string, string | undefined>;
+
+export interface NormalizedBrand { id: string; name: string; }
+export interface NormalizedProduct { type: string; name: string; }
+
+interface StationInput {
+  govId: number | null;
+  cuit: string | null;
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  region?: string | null;
+  brand: string;
+  brandName: string;
+  brandId?: number | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
-export interface NormalizedBrand {
-  id: string;
-  name: string;
-}
-
-export interface NormalizedProduct {
-  type: string;
-  name: string;
+interface PriceInput {
+  stationKey: string;
+  fuelType: string;
+  fuelTypeName: string;
+  originalProduct: string;
+  timeSlot: string;
+  price: number;
+  effectiveDate: Date;
 }
 
 export class GovIngestionService {
   private isSyncing = false;
   private lastSyncTime: Date | null = null;
-  private cachedSummary: any = null;
 
   public normalizeBrand(rawBrand: string | undefined): NormalizedBrand {
     if (!rawBrand) return { id: "blanca", name: "Sin Bandera" };
@@ -52,330 +54,179 @@ export class GovIngestionService {
     if (b.includes("GULF")) return { id: "gulf", name: "Gulf" };
     if (b.includes("REFINOR")) return { id: "refinor", name: "Refinor" };
     if (b.includes("VOY")) return { id: "voy", name: "Voy con Energía" };
-    return { id: "blanca", name: rawBrand };
+    return { id: "blanca", name: rawBrand.trim() };
   }
 
   public normalizeProduct(rawProduct: string | undefined): NormalizedProduct | null {
     if (!rawProduct) return null;
-    const p = rawProduct.toLowerCase().trim();
-    if (p.includes("súper") || p.includes("super") || (p.includes("nafta") && p.includes("92"))) {
-      return { type: "SUPER", name: "Nafta Súper" };
-    }
-    if (p.includes("premium") || p.includes("infinia") || p.includes("v-power") || (p.includes("nafta") && p.includes("95"))) {
-      return { type: "PREMIUM", name: "Nafta Premium" };
-    }
-    if (p.includes("gas oil grado 2") || p.includes("gasoil grado 2") || p.includes("diesel común") || p.includes("gas oil 2")) {
-      return { type: "DIESEL", name: "Diesel" };
-    }
-    if (p.includes("gas oil grado 3") || p.includes("gasoil grado 3") || p.includes("diesel premium") || p.includes("gas oil 3")) {
-      return { type: "DIESEL_PREMIUM", name: "Diesel Premium" };
-    }
-    if (p.includes("gnc") || p.includes("gas natural")) {
-      return { type: "GNC", name: "GNC" };
-    }
+    const product = rawProduct.toLowerCase().trim();
+    if (product.includes("súper") || product.includes("super") || (product.includes("nafta") && product.includes("92"))) return { type: "SUPER", name: "Nafta Súper" };
+    if (product.includes("premium") || product.includes("infinia") || product.includes("v-power") || (product.includes("nafta") && product.includes("95"))) return { type: "PREMIUM", name: "Nafta Premium" };
+    if (product.includes("gas oil grado 2") || product.includes("gasoil grado 2") || product.includes("diesel común")) return { type: "DIESEL", name: "Diesel" };
+    if (product.includes("gas oil grado 3") || product.includes("gasoil grado 3") || product.includes("diesel premium")) return { type: "DIESEL_PREMIUM", name: "Diesel Premium" };
+    if (product.includes("gnc") || product.includes("gas natural")) return { type: "GNC", name: "GNC" };
     return null;
   }
 
   public async syncLatestPrices(): Promise<{ success: boolean; records: number; stations: number; error?: string }> {
-    if (this.isSyncing) {
-      return { success: false, records: 0, stations: 0, error: "Ya hay una sincronización en curso" };
-    }
+    if (this.isSyncing) return { success: false, records: 0, stations: 0, error: "Ya hay una sincronización en curso" };
 
     this.isSyncing = true;
-    const syncLog = await prisma.syncLog.create({
-      data: {
-        source: "datos.energia.gob.ar (CSV Res. 314/2016)",
-        status: "RUNNING",
-      },
-    });
-
-    console.log(`[Ingestion] Iniciando descarga de dataset oficial desde: ${config.govCsvUrl}`);
+    const syncLog = await prisma.syncLog.create({ data: { source: "res1104.se.gob.ar (RES 1104/2004)", status: "RUNNING" } });
+    let workDir: string | undefined;
 
     try {
-      let stream: Readable;
-      try {
-        const response = await axios.get(config.govCsvUrl, {
-          responseType: "stream",
-          timeout: 45000,
-        });
-        stream = response.data;
-      } catch (err: any) {
-        console.warn(`[Ingestion] Error al descargar CSV completo (${err.message}). Intentando vía CKAN API...`);
-        return await this.syncViaCkanApi(syncLog.id);
-      }
+      workDir = await mkdtemp(join(tmpdir(), "naftahoy-res1104-"));
+      const archivePath = join(workDir, "precios-eess.zip");
+      const databasePath = join(workDir, "precios-eess.accdb");
 
-      const stationsMap = new Map<string, any>();
-      const pricesMap = new Map<string, any>();
-      let rowCount = 0;
+      console.log(`[Ingestion] Descargando archivo oficial RES 1104/2004 desde: ${config.res1104ZipUrl}`);
+      await this.downloadArchive(archivePath);
+      await this.extractAccessDatabase(archivePath, databasePath);
 
-      await new Promise<void>((resolve, reject) => {
-        stream
-          .pipe(csv())
-          .on("data", (row: RawGovRecord) => {
-            rowCount++;
-            const govId = row.idempresa ? parseInt(row.idempresa, 10) : undefined;
-            const cuit = row.cuit?.trim() || "";
-            const address = row.direccion?.trim() || "Sin dirección";
-            const stationKey = govId ? `gov_${govId}` : `cuit_${cuit}_${address}`;
+      const stations = new Map<string, StationInput>();
+      const prices = new Map<string, PriceInput>();
+      const records = await this.readAccessRows(databasePath, (row) => this.collectRow(row, stations, prices));
+      console.log(`[Ingestion] Leídas ${records} filas mensuales. ${stations.size} estaciones y ${prices.size} precios válidos detectados.`);
 
-            const brandInfo = this.normalizeBrand(row.empresabandera);
-            const productInfo = this.normalizeProduct(row.producto);
-            const price = row.precio ? parseFloat(row.precio.replace(",", ".")) : null;
-
-            if (!stationsMap.has(stationKey)) {
-              stationsMap.set(stationKey, {
-                govId: govId || null,
-                cuit: cuit || null,
-                name: row.empresa?.trim() || brandInfo.name,
-                address: address,
-                city: row.localidad?.trim() || "Desconocida",
-                province: row.provincia?.trim() || "Desconocida",
-                region: row.region?.trim() || null,
-                brand: brandInfo.id,
-                brandName: brandInfo.name,
-                brandId: row.idempresabandera ? parseInt(row.idempresabandera, 10) : null,
-                lat: row.latitud ? parseFloat(row.latitud.replace(",", ".")) : null,
-                lng: row.longitud ? parseFloat(row.longitud.replace(",", ".")) : null,
-              });
-            }
-
-            if (productInfo && price && price > 0 && price < 50000) {
-              const timeSlot = row.tipohorario?.trim() || "Diurno";
-              const priceKey = `${stationKey}_${productInfo.type}_${timeSlot}`;
-              
-              let effectiveDate = new Date();
-              if (row.fecha_vigencia) {
-                const parsed = new Date(row.fecha_vigencia);
-                if (!isNaN(parsed.getTime())) effectiveDate = parsed;
-              }
-
-              const previous = pricesMap.get(priceKey);
-              if (!previous || effectiveDate > previous.effectiveDate) pricesMap.set(priceKey, {
-                stationKey,
-                fuelType: productInfo.type,
-                fuelTypeName: productInfo.name,
-                originalProduct: row.producto || productInfo.name,
-                timeSlot,
-                price,
-                effectiveDate,
-              });
-            }
-          })
-          .on("end", () => resolve())
-          .on("error", (err) => reject(err));
-      });
-
-      console.log(`[Ingestion] Parseadas ${rowCount} filas. ${stationsMap.size} estaciones y ${pricesMap.size} precios detectados.`);
-
-      // Guardar en base de datos
-      await this.saveToDatabase(stationsMap, pricesMap);
-
-      await prisma.syncLog.update({
-        where: { id: syncLog.id },
-        data: {
-          status: "SUCCESS",
-          recordsProcessed: rowCount,
-          stationsCount: stationsMap.size,
-          completedAt: new Date(),
-        },
-      });
-
+      await this.saveToDatabase(stations, prices);
+      await prisma.syncLog.update({ where: { id: syncLog.id }, data: { status: "SUCCESS", recordsProcessed: records, stationsCount: stations.size, completedAt: new Date() } });
       this.lastSyncTime = new Date();
-      this.isSyncing = false;
-      this.cachedSummary = null; // invalidar cache de resumen
-
-      return {
-        success: true,
-        records: rowCount,
-        stations: stationsMap.size,
-      };
+      return { success: true, records, stations: stations.size };
     } catch (error: any) {
-      console.error("[Ingestion] Error durante la sincronización:", error);
-      await prisma.syncLog.update({
-        where: { id: syncLog.id },
-        data: {
-          status: "FAILED",
-          error: error.message || String(error),
-          completedAt: new Date(),
-        },
-      });
+      const message = error.message || String(error);
+      console.error("[Ingestion] Error durante la sincronización RES 1104/2004:", message);
+      await prisma.syncLog.update({ where: { id: syncLog.id }, data: { status: "FAILED", error: message, completedAt: new Date() } });
+      return { success: false, records: 0, stations: 0, error: message };
+    } finally {
       this.isSyncing = false;
-      return {
-        success: false,
-        records: 0,
-        stations: 0,
-        error: error.message || String(error),
-      };
+      if (workDir) await rm(workDir, { recursive: true, force: true });
     }
   }
 
-  private async syncViaCkanApi(syncLogId: number): Promise<{ success: boolean; records: number; stations: number; error?: string }> {
-    try {
-      console.log("[Ingestion] Consultando registros vía Datastore API...");
-      const res = await axios.get(`${config.govCkanUrl}&limit=2000`, { timeout: 30000 });
-      const records: RawGovRecord[] = res.data?.result?.records || [];
-
-      const stationsMap = new Map<string, any>();
-      const pricesMap = new Map<string, any>();
-
-      for (const row of records) {
-        const govId = row.idempresa ? parseInt(String(row.idempresa), 10) : undefined;
-        const cuit = String(row.cuit || "").trim();
-        const address = String(row.direccion || "Sin dirección").trim();
-        const stationKey = govId ? `gov_${govId}` : `cuit_${cuit}_${address}`;
-
-        const brandInfo = this.normalizeBrand(row.empresabandera);
-        const productInfo = this.normalizeProduct(row.producto);
-        const price = typeof row.precio === "number" ? row.precio : (row.precio ? parseFloat(String(row.precio).replace(",", ".")) : null);
-
-        if (!stationsMap.has(stationKey)) {
-          stationsMap.set(stationKey, {
-            govId: govId || null,
-            cuit: cuit || null,
-            name: row.empresa || brandInfo.name,
-            address: address,
-            city: row.localidad || "Desconocida",
-            province: row.provincia || "Desconocida",
-            region: row.region || null,
-            brand: brandInfo.id,
-            brandName: brandInfo.name,
-            brandId: row.idempresabandera ? parseInt(String(row.idempresabandera), 10) : null,
-            lat: row.latitud ? parseFloat(String(row.latitud)) : null,
-            lng: row.longitud ? parseFloat(String(row.longitud)) : null,
-          });
-        }
-
-        if (productInfo && price && price > 0) {
-          const timeSlot = row.tipohorario || "Diurno";
-          const priceKey = `${stationKey}_${productInfo.type}_${timeSlot}`;
-          let effectiveDate = new Date();
-          if (row.fecha_vigencia) {
-            const parsed = new Date(row.fecha_vigencia);
-            if (!isNaN(parsed.getTime())) effectiveDate = parsed;
-          }
-
-          const previous = pricesMap.get(priceKey);
-          if (!previous || effectiveDate > previous.effectiveDate) pricesMap.set(priceKey, {
-            stationKey,
-            fuelType: productInfo.type,
-            fuelTypeName: productInfo.name,
-            originalProduct: row.producto || productInfo.name,
-            timeSlot,
-            price,
-            effectiveDate,
-          });
-        }
-      }
-
-      await this.saveToDatabase(stationsMap, pricesMap);
-
-      await prisma.syncLog.update({
-        where: { id: syncLogId },
-        data: {
-          status: "SUCCESS",
-          recordsProcessed: records.length,
-          stationsCount: stationsMap.size,
-          completedAt: new Date(),
-        },
-      });
-
-      this.lastSyncTime = new Date();
-      this.isSyncing = false;
-      this.cachedSummary = null;
-
-      return {
-        success: true,
-        records: records.length,
-        stations: stationsMap.size,
-      };
-    } catch (err: any) {
-      console.error("[Ingestion] Error en sincronización CKAN API:", err);
-      this.isSyncing = false;
-      return { success: false, records: 0, stations: 0, error: err.message };
+  private async downloadArchive(destination: string) {
+    const response = await axios.get(config.res1104ZipUrl, { responseType: "stream", timeout: 120_000, maxRedirects: 0, validateStatus: (status) => status === 200 });
+    await pipeline(response.data, createWriteStream(destination));
+    const signature = await readFile(destination, { encoding: null }).then((buffer) => buffer.subarray(0, 4).toString("hex"));
+    if (signature !== "504b0304" && signature !== "504b0506" && signature !== "504b0708") {
+      throw new Error("La descarga RES 1104/2004 no es un ZIP válido. Se rechazó para evitar importar una página de error o autenticación.");
     }
   }
 
-  private async saveToDatabase(stationsMap: Map<string, any>, pricesMap: Map<string, any>): Promise<void> {
-    console.log("[Ingestion] Guardando estaciones y precios en base de datos...");
-    
-    // Batch processing
-    const stationEntries = Array.from(stationsMap.entries());
+  private async extractAccessDatabase(archivePath: string, destination: string) {
+    const entries = await this.runCommand("unzip", ["-Z1", archivePath]);
+    const entry = entries.split(/\r?\n/).find((name) => name.toLowerCase().endsWith(".accdb"));
+    if (!entry) throw new Error("El ZIP de RES 1104/2004 no contiene un archivo .accdb.");
+    await this.streamCommandToFile("unzip", ["-p", archivePath, entry], destination);
+  }
+
+  private async readAccessRows(databasePath: string, onRow: (row: Res1104Record) => void): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const process = spawn("mdb-export", [databasePath, config.res1104TableName], { stdio: ["ignore", "pipe", "pipe"] });
+      let stderr = "";
+      let records = 0;
+      process.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+      const parser = csv();
+      parser.on("data", (row: Res1104Record) => { records += 1; onRow(row); });
+      parser.on("error", reject);
+      process.on("error", reject);
+      process.on("close", (code) => code === 0 ? resolve(records) : reject(new Error(`mdb-export finalizó con código ${code}: ${stderr.trim()}`)));
+      process.stdout.pipe(parser);
+    });
+  }
+
+  private collectRow(row: Res1104Record, stations: Map<string, StationInput>, prices: Map<string, PriceInput>) {
+    if (this.clean(row["Canal de Comercialización"]).toLowerCase() !== "al público") return;
+    const govId = this.parseInteger(row["Nro Inscripción"]);
+    const cuit = this.clean(row.CUIT);
+    const address = this.clean(row["Dirección"]) || "Sin dirección";
+    const stationKey = govId ? `gov_${govId}` : `cuit_${cuit}_${address}`;
+    const brand = this.normalizeBrand(row.Bandera);
+    const period = this.parsePeriod(row["Período"]);
+    const product = this.normalizeProduct(row.Producto);
+    const price = this.parsePrice(row["Precio surtidor"]) || this.parsePrice(row["Precio con impuestos"]);
+
+    if (!stations.has(stationKey)) {
+      stations.set(stationKey, {
+        govId: govId || null,
+        cuit: cuit || null,
+        name: this.clean(row.Operador) || brand.name,
+        address,
+        city: this.clean(row.Localidad) || "Desconocida",
+        province: this.clean(row.Provincia) || "Desconocida",
+        brand: brand.id,
+        brandName: brand.name,
+      });
+    }
+    if (!period || !product || !price || price <= 0 || price > 50_000) return;
+    const priceKey = `${stationKey}_${product.type}_Mensual_${period.toISOString()}`;
+    prices.set(priceKey, { stationKey, fuelType: product.type, fuelTypeName: product.name, originalProduct: this.clean(row.Producto) || product.name, timeSlot: "Mensual", price, effectiveDate: period });
+  }
+
+  private async saveToDatabase(stations: Map<string, StationInput>, prices: Map<string, PriceInput>) {
     const stationIdMap = new Map<string, string>();
+    const stationEntries = [...stations.entries()];
+    const batchSize = 100;
+    for (let index = 0; index < stationEntries.length; index += batchSize) {
+      const batch = stationEntries.slice(index, index + batchSize);
+      const results = await prisma.$transaction(batch.map(([, data]) => {
+        const update = { ...data, lat: undefined, lng: undefined, region: undefined, brandId: undefined };
+        return data.govId ? prisma.station.upsert({ where: { govId: data.govId }, create: data, update }) : prisma.station.create({ data });
+      }));
+      results.forEach((station, itemIndex) => stationIdMap.set(batch[itemIndex][0], station.id));
+    }
 
-    // Guardar estaciones en lotes
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < stationEntries.length; i += BATCH_SIZE) {
-      const batch = stationEntries.slice(i, i + BATCH_SIZE);
-      
-      await prisma.$transaction(
-        batch.map(([key, data]) => {
-          if (data.govId) {
-            return prisma.station.upsert({
-              where: { govId: data.govId },
-              create: data,
-              update: data,
-            });
-          } else {
-            return prisma.station.create({
-              data,
-            });
-          }
-        })
-      ).then((results) => {
-        results.forEach((st, idx) => {
-          const [key] = batch[idx];
-          stationIdMap.set(key, st.id);
-        });
+    const priceEntries = [...prices.values()];
+    for (let index = 0; index < priceEntries.length; index += batchSize) {
+      const batch = priceEntries.slice(index, index + batchSize);
+      const commands = batch.flatMap((price) => {
+        const stationId = stationIdMap.get(price.stationKey);
+        return stationId ? [prisma.priceRecord.upsert({
+          where: { stationId_fuelType_timeSlot_effectiveDate: { stationId, fuelType: price.fuelType, timeSlot: price.timeSlot, effectiveDate: price.effectiveDate } },
+          create: { ...price, stationId },
+          update: { price: price.price, fuelTypeName: price.fuelTypeName, originalProduct: price.originalProduct },
+        })] : [];
       });
+      if (commands.length) await prisma.$transaction(commands);
     }
-
-    console.log(`[Ingestion] Guardadas ${stationIdMap.size} estaciones. Guardando precios...`);
-
-    // Guardar precios en lotes
-    const priceEntries = Array.from(pricesMap.values());
-    for (let i = 0; i < priceEntries.length; i += BATCH_SIZE) {
-      const batch = priceEntries.slice(i, i + BATCH_SIZE);
-      
-      const promises = batch.map((p) => {
-        const stationId = stationIdMap.get(p.stationKey);
-        if (!stationId) return null;
-
-        return prisma.priceRecord.upsert({
-          where: {
-            stationId_fuelType_timeSlot_effectiveDate: {
-              stationId,
-              fuelType: p.fuelType,
-              timeSlot: p.timeSlot,
-              effectiveDate: p.effectiveDate,
-            },
-          },
-          create: {
-            stationId,
-            fuelType: p.fuelType,
-            fuelTypeName: p.fuelTypeName,
-            originalProduct: p.originalProduct,
-            timeSlot: p.timeSlot,
-            price: p.price,
-            effectiveDate: p.effectiveDate,
-          },
-          update: { price: p.price, fuelTypeName: p.fuelTypeName, originalProduct: p.originalProduct },
-        });
-      }).filter(Boolean);
-
-      if (promises.length > 0) {
-        await prisma.$transaction(promises as any);
-      }
-    }
-
-    console.log("[Ingestion] Guardado completo.");
   }
 
-  public getLastSyncStatus() {
-    return {
-      isSyncing: this.isSyncing,
-      lastSyncTime: this.lastSyncTime,
-    };
+  private clean(value: string | undefined) { return value?.trim() || ""; }
+  private parseInteger(value: string | undefined) { const parsed = Number.parseInt(this.clean(value), 10); return Number.isInteger(parsed) ? parsed : null; }
+  private parsePrice(value: string | undefined) {
+    const raw = this.clean(value).replace(/\s/g, "");
+    if (!raw) return null;
+    const comma = raw.lastIndexOf(",");
+    const dot = raw.lastIndexOf(".");
+    const normalized = comma > dot ? raw.replace(/\./g, "").replace(",", ".") : raw.replace(/,/g, "");
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) && parsed >= 50 ? parsed : null;
   }
+  private parsePeriod(value: string | undefined) { const match = this.clean(value).match(/^(\d{4})\/(\d{1,2})$/); return match ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1)) : null; }
+  private async runCommand(command: string, args: string[]) {
+    return new Promise<string>((resolve, reject) => {
+      const process = spawn(command, args);
+      let stdout = "";
+      let stderr = "";
+      process.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+      process.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+      process.on("error", reject);
+      process.on("close", (code) => code === 0
+        ? resolve(stdout)
+        : reject(new Error(`${command} finalizó con código ${code}: ${stderr.trim()}`)));
+    });
+  }
+
+  private async streamCommandToFile(command: string, args: string[], destination: string) {
+    const process = spawn(command, args);
+    let stderr = "";
+    process.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+    await pipeline(process.stdout, createWriteStream(destination));
+    const code = await new Promise<number | null>((resolve) => process.on("close", resolve));
+    if (code !== 0) throw new Error(`${command} finalizó con código ${code}: ${stderr.trim()}`);
+  }
+
+  public getLastSyncStatus() { return { isSyncing: this.isSyncing, lastSyncTime: this.lastSyncTime }; }
 }
 
 export const govIngestionService = new GovIngestionService();

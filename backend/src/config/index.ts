@@ -9,7 +9,7 @@ export const config = {
   syncApiToken: process.env.SYNC_API_TOKEN || "",
   adminApiToken: process.env.ADMIN_API_TOKEN || "",
   reportRateLimitPerHour: parseInt(process.env.REPORT_RATE_LIMIT_PER_HOUR || "5", 10),
-  govCsvUrl: process.env.GOV_DATASET_CSV_URL || "http://datos.energia.gob.ar/dataset/1c181390-5045-475e-94dc-410429be4b17/resource/80ac25de-a44a-4445-9215-090cf55cfda5/download/precios-en-surtidor-resolucin-3142016.csv",
-  govCkanUrl: process.env.GOV_CKAN_API_URL || "https://datos.energia.gob.ar/api/3/action/datastore_search?resource_id=80ac25de-a44a-4445-9215-090cf55cfda5",
-  cronSchedule: process.env.CRON_SYNC_SCHEDULE || "0 */2 * * *",
+  res1104ZipUrl: process.env.RES1104_ZIP_URL || "http://res1104.se.gob.ar/adjuntos/precios_eess_2025_en_adelante.zip",
+  res1104TableName: process.env.RES1104_TABLE_NAME || "public_vi_access_eess_2025_en_adelante",
+  cronSchedule: process.env.CRON_SYNC_SCHEDULE || "0 6 5 * *",
 };

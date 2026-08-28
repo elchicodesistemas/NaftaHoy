@@ -13,7 +13,7 @@ export class PriceService {
   public async getSummary(province?: string) {
     const whereStation = province ? { province: { contains: province, mode: "insensitive" as const } } : {};
     const rows = await prisma.priceRecord.findMany({
-      where: { station: whereStation, timeSlot: { equals: "Diurno", mode: "insensitive" } },
+      where: { station: whereStation, timeSlot: "Mensual" },
       include: { station: { select: { brand: true } } }, orderBy: { effectiveDate: "desc" },
     });
     if (!rows.length) return this.emptySummary();
@@ -55,7 +55,7 @@ export class PriceService {
     if (filters.brand && filters.brand !== "all") where.brand = filters.brand.toLowerCase();
     if (filters.province) where.province = { contains: filters.province, mode: "insensitive" };
     if (filters.city) where.city = { contains: filters.city, mode: "insensitive" };
-    const stations = await prisma.station.findMany({ where, take: Math.min(filters.limit || 50, 200), include: { prices: { where: { timeSlot: { equals: "Diurno", mode: "insensitive" } }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
+    const stations = await prisma.station.findMany({ where, take: Math.min(filters.limit || 50, 200), include: { prices: { where: { timeSlot: "Mensual" }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
     return stations.map((station) => {
       const byFuel = new Map<string, number>(); for (const price of station.prices) if (!byFuel.has(price.fuelType)) byFuel.set(price.fuelType, price.price);
       return { id: station.id, govId: station.govId, name: `${station.brandName} - ${station.address}`, rawName: station.name, brand: station.brand, brandName: station.brandName, address: station.address, city: station.city, province: station.province, lat: station.lat, lng: station.lng, prices: { super: byFuel.get("SUPER") || null, premium: byFuel.get("PREMIUM") || null, diesel: byFuel.get("DIESEL") || null, gnc: byFuel.get("GNC") || null }, lastUpdate: station.updatedAt };
@@ -63,11 +63,11 @@ export class PriceService {
   }
 
   public async getTrends() {
-    const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0, 0, 0, 0);
-    const rows = await prisma.priceRecord.findMany({ where: { fuelType: "SUPER", timeSlot: { equals: "Diurno", mode: "insensitive" }, effectiveDate: { gte: since }, station: { brand: { in: Object.keys(brands) } } }, include: { station: { select: { brand: true } } }, orderBy: { effectiveDate: "asc" } });
+    const since = new Date(); since.setUTCMonth(since.getUTCMonth() - 7, 1); since.setUTCHours(0, 0, 0, 0);
+    const rows = await prisma.priceRecord.findMany({ where: { fuelType: "SUPER", timeSlot: "Mensual", effectiveDate: { gte: since }, station: { brand: { in: Object.keys(brands) } } }, include: { station: { select: { brand: true } } }, orderBy: { effectiveDate: "asc" } });
     const days = new Map<string, Record<string, number[]>>();
-    for (const row of rows) { const date = row.effectiveDate.toISOString().slice(0, 10); const bucket = days.get(date) || {}; (bucket[row.station.brand] ||= []).push(row.price); days.set(date, bucket); }
-    return [...days.entries()].map(([date, bucket]) => ({ day: new Intl.DateTimeFormat("es-AR", { weekday: "short", timeZone: "America/Argentina/Buenos_Aires" }).format(new Date(`${date}T12:00:00Z`)), date, ...Object.fromEntries(Object.entries(bucket).map(([brand, values]) => [brand, Math.round(values.reduce((a, b) => a + b, 0) / values.length)])) }));
+    for (const row of rows) { const date = row.effectiveDate.toISOString().slice(0, 7); const bucket = days.get(date) || {}; (bucket[row.station.brand] ||= []).push(row.price); days.set(date, bucket); }
+    return [...days.entries()].map(([date, bucket]) => ({ day: new Intl.DateTimeFormat("es-AR", { month: "short", timeZone: "America/Argentina/Buenos_Aires" }).format(new Date(`${date}-01T12:00:00Z`)), date, ...Object.fromEntries(Object.entries(bucket).map(([brand, values]) => [brand, Math.round(values.reduce((a, b) => a + b, 0) / values.length)])) }));
   }
 
   public async getCommunityReports(limit = 20) { return prisma.communityReport.findMany({ where: { status: "APPROVED" }, take: Math.min(limit, 50), orderBy: { createdAt: "desc" } }); }

@@ -2,7 +2,7 @@ FROM public.ecr.aws/docker/library/node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apk add --no-cache mdbtools mdbtools-utils openssl unzip
 
 COPY package*.json ./
 COPY tsconfig.json ./
@@ -18,7 +18,7 @@ FROM public.ecr.aws/docker/library/node:20-alpine AS runner
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apk add --no-cache mdbtools mdbtools-utils openssl unzip
 
 ENV NODE_ENV=production
 

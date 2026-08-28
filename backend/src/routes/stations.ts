@@ -9,6 +9,7 @@ router.get("/", async (req: Request, res: Response) => {
     const brand = req.query.brand as string | undefined;
     const province = req.query.province as string | undefined;
     const city = req.query.city as string | undefined;
+    const search = req.query.search as string | undefined;
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
     const location = parseLocation(req);
     if (location === null) return res.status(400).json({ error: "lat y lng deben ser números válidos" });
@@ -17,6 +18,7 @@ router.get("/", async (req: Request, res: Response) => {
       brand,
       province,
       city,
+      search,
       limit,
       location: location || undefined,
     });

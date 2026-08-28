@@ -80,12 +80,13 @@ export const api = {
     }
   },
 
-  async getStations(brand?: string, province?: string, location?: UserLocation): Promise<StationDto[]> {
+  async getStations(brand?: string, province?: string, location?: UserLocation, search?: string): Promise<StationDto[]> {
     try {
       const params = new URLSearchParams();
       if (brand && brand !== "all") params.append("brand", brand);
       if (province) params.append("province", province);
       if (location) { params.append("lat", String(location.lat)); params.append("lng", String(location.lng)); params.append("radiusKm", "15"); }
+      if (search?.trim()) params.append("search", search.trim());
       params.append("limit", "150");
 
       const res = await fetch(`${API_BASE}/stations?${params.toString()}`, { cache: "no-store" });

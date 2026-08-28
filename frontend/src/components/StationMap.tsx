@@ -43,21 +43,31 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showList, setShowList] = useState<boolean>(false);
   const [rawStations, setRawStations] = useState<any[]>(fallbackStations);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Cargar estaciones desde la API
   useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) setShowList(true);
+  }, [searchQuery]);
+
+  // Consultar la base de datos al buscar, para no limitarse a las estaciones ya visibles.
+  useEffect(() => {
+    let active = true;
     async function loadStations() {
       try {
-        const data = await api.getStations(selectedBrand === "all" ? undefined : selectedBrand, undefined, userLocation);
-        if (data && data.length > 0) {
-          setRawStations(data);
-        }
+        const data = await api.getStations(selectedBrand === "all" ? undefined : selectedBrand, undefined, userLocation, debouncedSearch);
+        if (active) setRawStations(data);
       } catch (err) {
         console.warn("[Map] Error al cargar estaciones:", err);
       }
     }
     loadStations();
-  }, [selectedBrand, userLocation]);
+    return () => { active = false; };
+  }, [selectedBrand, userLocation, debouncedSearch]);
 
   // Filtrar estaciones en memoria por búsqueda
   const filteredStations = useMemo(() => {
@@ -204,6 +214,15 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
     if (loaded && userLocation) mapInstanceRef.current?.setView([userLocation.lat, userLocation.lng], 14);
   }, [loaded, userLocation]);
 
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const L = leafletRef.current;
+    const coordinates = filteredStations.filter((station) => station.lat !== null && station.lng !== null).map((station) => [station.lat, station.lng]);
+    if (loaded && L && map && debouncedSearch && coordinates.length) {
+      map.fitBounds(L.latLngBounds(coordinates), { padding: [32, 32], maxZoom: 15 });
+    }
+  }, [loaded, filteredStations, debouncedSearch]);
+
   const handleLocate = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -257,7 +276,7 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
             <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
-              placeholder="Buscar por calle, barrio o localidad..."
+              placeholder="Bandera, localidad o dirección..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-surface-200 dark:border-dark-border bg-surface-50 dark:bg-dark-surface text-zinc-700 dark:text-zinc-200 outline-none focus:border-brand-primary"
@@ -330,7 +349,7 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
       {showList && (
         <div className="p-4 border-t border-surface-200 dark:border-dark-border bg-surface-50 dark:bg-dark-surface max-h-60 overflow-y-auto divide-y divide-surface-100 dark:divide-dark-border">
           <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
-            {userLocation ? "Estaciones más cercanas" : "Estaciones ordenadas por precio"} ({fuelTypeKeys[selectedFuel]?.label})
+            {debouncedSearch ? `Resultados para “${debouncedSearch}”` : userLocation ? "Estaciones más cercanas" : "Estaciones disponibles"} ({fuelTypeKeys[selectedFuel]?.label})
           </h4>
           {filteredStations.slice(0, 20).map((st) => {
             const price = st.prices?.[selectedFuel as "super"];

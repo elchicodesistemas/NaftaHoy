@@ -52,11 +52,21 @@ export class PriceService {
     return { companies, stats: { superAvg: average, variationPct: priorAverage ? Number((((average - priorAverage) / priorAverage) * 100).toFixed(1)) : 0, cheapestBrand: superPrices[0]?.brand || "-", cheapestPrice: superPrices[0]?.price || 0, mostExpensiveBrand: superPrices.at(-1)?.brand || "-", mostExpensivePrice: superPrices.at(-1)?.price || 0, totalStations: await prisma.station.count({ where: whereStation }), lastUpdated: rows[0].effectiveDate.toISOString() }, isRealData: true, dataSource: timeSlot === "Mensual" ? "RES_1104_2004" : "LEGACY_RES_314_2016" };
   }
 
-  public async getStations(filters: { brand?: string; province?: string; city?: string; limit?: number; location?: LocationFilter }) {
+  public async getStations(filters: { brand?: string; province?: string; city?: string; search?: string; limit?: number; location?: LocationFilter }) {
     const timeSlot = await this.getActiveTimeSlot();
     const where: any = { ...(await this.buildStationFilter(filters.province, filters.location)), lat: { not: null }, lng: { not: null } };
     if (filters.brand && filters.brand !== "all") where.brand = filters.brand.toLowerCase();
     if (filters.city) where.city = { contains: filters.city, mode: "insensitive" };
+    if (filters.search?.trim()) {
+      const search = filters.search.trim();
+      where.AND = [{ OR: [
+        { name: { contains: search, mode: "insensitive" } },
+        { brandName: { contains: search, mode: "insensitive" } },
+        { address: { contains: search, mode: "insensitive" } },
+        { city: { contains: search, mode: "insensitive" } },
+        { province: { contains: search, mode: "insensitive" } },
+      ] }];
+    }
     const limit = Math.min(filters.limit || 50, 200);
     const stations = await prisma.station.findMany({ where, take: filters.location ? undefined : limit, include: { prices: { where: { timeSlot }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
     const results = stations.map((station) => {

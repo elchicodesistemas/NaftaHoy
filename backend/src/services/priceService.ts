@@ -57,12 +57,14 @@ export class PriceService {
     const where: any = { ...(await this.buildStationFilter(filters.province, filters.location)), lat: { not: null }, lng: { not: null } };
     if (filters.brand && filters.brand !== "all") where.brand = filters.brand.toLowerCase();
     if (filters.city) where.city = { contains: filters.city, mode: "insensitive" };
-    const stations = await prisma.station.findMany({ where, take: Math.min(filters.limit || 50, 200), include: { prices: { where: { timeSlot }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
-    return stations.map((station) => {
+    const limit = Math.min(filters.limit || 50, 200);
+    const stations = await prisma.station.findMany({ where, take: filters.location ? undefined : limit, include: { prices: { where: { timeSlot }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
+    const results = stations.map((station) => {
       const byFuel = new Map<string, number>(); for (const price of station.prices) if (!byFuel.has(price.fuelType)) byFuel.set(price.fuelType, price.price);
       const distanceKm = filters.location && station.lat !== null && station.lng !== null ? this.distanceKm(filters.location.lat, filters.location.lng, station.lat, station.lng) : undefined;
       return { id: station.id, govId: station.govId, name: `${station.brandName} - ${station.address}`, rawName: station.name, brand: station.brand, brandName: station.brandName, address: station.address, city: station.city, province: station.province, lat: station.lat, lng: station.lng, prices: { super: byFuel.get("SUPER") || null, premium: byFuel.get("PREMIUM") || null, diesel: byFuel.get("DIESEL") || null, gnc: byFuel.get("GNC") || null }, lastUpdate: station.updatedAt, distanceKm };
     }).sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    return filters.location ? results.slice(0, limit) : results;
   }
 
   public async getTrends() {

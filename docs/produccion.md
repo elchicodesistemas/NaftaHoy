@@ -14,7 +14,7 @@ Desde `infrastructure/docker`, iniciá los servicios con `docker compose up -d -
 
 - `docker compose ps`: PostgreSQL, backend y frontend deben figurar saludables o en ejecución.
 - `curl -f https://naftahoy.com/api/health`: debe informar `status: ok` y conteos de estaciones/precios.
-- Ejecutá una sincronización manual con `POST /api/sync` y el encabezado `Authorization: Bearer <SYNC_API_TOKEN>`; confirmá que la respuesta y la portada muestren datos reales.
+- Ejecutá la carga mensual manual desde el VPS con `infrastructure/scripts/import-res1104.sh /ruta/al/archivo.accdb` (o `.zip`); confirmá el avance en `/api/sync/status` y que la portada muestre datos oficiales.
 - Comprobá el formulario de reportes: debe confirmar que la publicación queda pendiente.
 
 ## Moderación de reportes
@@ -32,3 +32,4 @@ No expongas el token en el navegador ni lo incluyas en enlaces, scripts o reposi
 - Programá un respaldo diario del volumen `postgres-data` y probá una restauración antes del lanzamiento.
 - Configurá alertas para el endpoint de salud y para errores de los contenedores.
 - Renovación automática: verificá que el mecanismo elegido para Let's Encrypt recargue Nginx al renovarse el certificado.
+- La sincronización automática está deliberadamente desactivada: cada período publicado se importa de forma manual desde el archivo de RES 1104/2004.

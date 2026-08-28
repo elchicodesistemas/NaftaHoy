@@ -47,16 +47,17 @@ curl -f https://naftahoy.com/api/health
 
 La respuesta debe indicar `status: ok` y mostrar conteos de estaciones y precios.
 
-## 5. Primera sincronización
+## 5. Primera carga mensual
 
-Ejecutá una sincronización manual una única vez. Usá el `SYNC_API_TOKEN` solo desde una consola segura:
+Subí el archivo mensual descargado desde la consulta oficial al VPS y ejecutá el importador local. Puede recibir tanto el ZIP como el ACCDB:
 
 ```bash
-curl -X POST https://naftahoy.com/api/sync \
-  -H "Authorization: Bearer <SYNC_API_TOKEN>"
+infrastructure/scripts/import-res1104.sh /ruta/precios_eess_2025_en_adelante.accdb
 ```
 
-Luego comprobá que `GET /api/sync/status` tenga una sincronización exitosa, que la portada muestre datos oficiales y que el mapa cargue estaciones. El cron continuará sincronizando de acuerdo con `CRON_SYNC_SCHEDULE`.
+El script lee el token administrativo sólo desde el archivo privado `.env` y se conecta directamente al backend local; no publica el archivo ni el token. Luego comprobá que `GET /api/sync/status` tenga una sincronización exitosa, que la portada muestre datos oficiales y que el mapa cargue estaciones. La importación queda en segundo plano, por lo que el archivo puede tardar varios minutos.
+
+La sincronización automática está desactivada deliberadamente: repetí esta carga cuando la Secretaría publique el período siguiente.
 
 ## 6. Operación y recuperación
 
@@ -77,6 +78,6 @@ Monitoreá `https://naftahoy.com/api/health`, el vencimiento del certificado y l
 - [ ] `infrastructure/docker/.env` contiene secretos reales y no está versionado.
 - [ ] `docker compose ps` muestra los servicios sanos.
 - [ ] `/api/health` responde correctamente.
-- [ ] La sincronización oficial terminó con éxito y se ven precios reales.
+- [ ] La carga mensual RES 1104/2004 terminó con éxito y se ven precios oficiales.
 - [ ] Se realizó y verificó al menos un backup.
 - [ ] Se configuró monitoreo externo para la salud del sitio.

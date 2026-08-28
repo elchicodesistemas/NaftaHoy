@@ -103,7 +103,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-800 dark:text-zinc-100 tracking-tight">
                     Precio de la nafta <span className="text-brand-primary">hoy</span>
                   </h1>
-                  {data.isRealData && (
+                  {data.isRealData && data.dataSource === "RES_1104_2004" && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-400 px-2.5 py-0.5 rounded-full shadow-xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Datos Oficiales
@@ -152,7 +152,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
                   Precios por petrolera
                 </h2>
                 <span className="text-xs text-zinc-400">
-                  {data.isRealData ? "Resolución 1104/2004 · actualización mensual" : "Modo vista previa"}
+                  {data.dataSource === "RES_1104_2004" ? "Resolución 1104/2004 · actualización mensual" : data.dataSource === "LEGACY_RES_314_2016" ? "Datos heredados · pendiente de carga mensual oficial" : "Modo vista previa"}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

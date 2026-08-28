@@ -6,8 +6,8 @@ import pricesRouter from "./routes/prices";
 import stationsRouter from "./routes/stations";
 import reportsRouter from "./routes/reports";
 import syncRouter from "./routes/sync";
+import importsRouter from "./routes/imports";
 import { initCronWorker } from "./workers/cronWorker";
-import { govIngestionService } from "./services/govIngestionService";
 
 const app = express();
 
@@ -40,6 +40,7 @@ app.use("/api/prices", pricesRouter);
 app.use("/api/stations", stationsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/sync", syncRouter);
+app.use("/api/admin/imports", importsRouter);
 
 // Health check
 app.get("/api/health", async (_req: Request, res: Response) => {
@@ -75,14 +76,11 @@ const server = app.listen(config.port, async () => {
   // Iniciar worker de tareas periódicas
   initCronWorker();
 
-  // Verificar si la base de datos está vacía; si es así, sincronizar en background
+  // La fuente RES 1104/2004 se carga manualmente una vez por mes desde el VPS.
   try {
     const count = await prisma.station.count();
     if (count === 0) {
-      console.log("[Boot] Base de datos inicial vacía. Iniciando primera sincronización oficial...");
-      govIngestionService.syncLatestPrices().catch((err) => {
-        console.error("[Boot] Error en primera sincronización:", err);
-      });
+      console.log("[Boot] Base vacía. Esperando la primera carga manual RES 1104/2004.");
     } else {
       console.log(`[Boot] Base de datos lista con ${count} estaciones cargadas.`);
     }

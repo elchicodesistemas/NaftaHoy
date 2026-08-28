@@ -1,13 +1,13 @@
 # Fuentes de datos — NaftaHoy
 
-## Fuente activa planificada
+## Fuente oficial vigente
 
 ### Secretaría de Energía — RES 1104/2004
 
 - **Consulta:** http://res1104.se.gob.ar/consultaprecios.eess.php
 - **Archivo:** `precios_eess_2025_en_adelante.zip`, con una base Microsoft Access `.accdb`.
 - **Cobertura:** precios y volúmenes declarados por operadores, por período, producto, canal, bandera y establecimiento.
-- **Frecuencia:** mensual. NaftaHoy sincroniza el archivo completo el día 5 de cada mes y conserva el historial por período.
+- **Frecuencia:** mensual. NaftaHoy recibe el archivo completo mediante una carga manual mensual y conserva el historial por período.
 - **Alcance importado:** únicamente el canal `Al público`; se excluyen mayoristas y otros canales.
 
 La Resolución 717/2025 derogó la Resolución 314/2016, por lo que la aplicación no presenta los datos como precios en tiempo real ni utiliza la fuente anterior para nuevas sincronizaciones.

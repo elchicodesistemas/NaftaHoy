@@ -15,6 +15,7 @@ export interface PriceSummaryResponse {
     lastUpdated: string;
   };
   isRealData: boolean;
+  dataSource: "RES_1104_2004" | "LEGACY_RES_314_2016" | "NONE";
 }
 
 export interface StationDto {
@@ -68,6 +69,7 @@ export const api = {
           lastUpdated: new Date().toISOString(),
         },
         isRealData: false,
+        dataSource: "NONE",
       };
     }
   },

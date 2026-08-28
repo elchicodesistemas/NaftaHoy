@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { govIngestionService } from "../services/govIngestionService";
 import { prisma } from "../config/prisma";
 import { requireSyncToken } from "../utils/security";
+import { config } from "../config";
 
 const router = Router();
 
@@ -30,6 +31,9 @@ router.get("/status", async (req: Request, res: Response) => {
 
 // POST /api/sync
 router.post("/", requireSyncToken, async (req: Request, res: Response) => {
+  if (!config.cronSchedule) {
+    return res.status(409).json({ error: "La sincronización por URL está desactivada. Realizá la carga mensual con infrastructure/scripts/import-res1104.sh desde el VPS." });
+  }
   try {
     // Iniciar sincronización en background o síncrono si se solicita
     const asyncMode = req.query.async === "true";

@@ -3,6 +3,10 @@ import { govIngestionService } from "../services/govIngestionService";
 import { config } from "../config";
 
 export function initCronWorker() {
+  if (!config.cronSchedule) {
+    console.log("[Worker] Sincronización automática desactivada; se utiliza carga mensual manual.");
+    return;
+  }
   console.log(`[Worker] Inicializando cron de sincronización con patrón: "${config.cronSchedule}"`);
 
   cron.schedule(config.cronSchedule, async () => {

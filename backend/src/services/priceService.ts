@@ -11,9 +11,10 @@ const fuelOrder = ["Nafta Súper", "Nafta Premium", "Diesel", "Diesel Premium", 
 
 export class PriceService {
   public async getSummary(province?: string) {
+    const timeSlot = await this.getActiveTimeSlot();
     const whereStation = province ? { province: { contains: province, mode: "insensitive" as const } } : {};
     const rows = await prisma.priceRecord.findMany({
-      where: { station: whereStation, timeSlot: "Mensual" },
+      where: { station: whereStation, timeSlot },
       include: { station: { select: { brand: true } } }, orderBy: { effectiveDate: "desc" },
     });
     if (!rows.length) return this.emptySummary();
@@ -47,15 +48,16 @@ export class PriceService {
     const superPrices = companies.flatMap((company) => company.fuels.filter((f) => f.type === "Nafta Súper").map((f) => ({ brand: company.shortName, price: f.price, prevPrice: f.prevPrice }))).sort((a, b) => a.price - b.price);
     const average = superPrices.length ? Math.round(superPrices.reduce((sum, item) => sum + item.price, 0) / superPrices.length) : 0;
     const priorAverage = superPrices.length ? superPrices.reduce((sum, item) => sum + item.prevPrice, 0) / superPrices.length : 0;
-    return { companies, stats: { superAvg: average, variationPct: priorAverage ? Number((((average - priorAverage) / priorAverage) * 100).toFixed(1)) : 0, cheapestBrand: superPrices[0]?.brand || "-", cheapestPrice: superPrices[0]?.price || 0, mostExpensiveBrand: superPrices.at(-1)?.brand || "-", mostExpensivePrice: superPrices.at(-1)?.price || 0, totalStations: await prisma.station.count({ where: whereStation }), lastUpdated: rows[0].effectiveDate.toISOString() }, isRealData: true };
+    return { companies, stats: { superAvg: average, variationPct: priorAverage ? Number((((average - priorAverage) / priorAverage) * 100).toFixed(1)) : 0, cheapestBrand: superPrices[0]?.brand || "-", cheapestPrice: superPrices[0]?.price || 0, mostExpensiveBrand: superPrices.at(-1)?.brand || "-", mostExpensivePrice: superPrices.at(-1)?.price || 0, totalStations: await prisma.station.count({ where: whereStation }), lastUpdated: rows[0].effectiveDate.toISOString() }, isRealData: true, dataSource: timeSlot === "Mensual" ? "RES_1104_2004" : "LEGACY_RES_314_2016" };
   }
 
   public async getStations(filters: { brand?: string; province?: string; city?: string; limit?: number }) {
+    const timeSlot = await this.getActiveTimeSlot();
     const where: any = { lat: { not: null }, lng: { not: null } };
     if (filters.brand && filters.brand !== "all") where.brand = filters.brand.toLowerCase();
     if (filters.province) where.province = { contains: filters.province, mode: "insensitive" };
     if (filters.city) where.city = { contains: filters.city, mode: "insensitive" };
-    const stations = await prisma.station.findMany({ where, take: Math.min(filters.limit || 50, 200), include: { prices: { where: { timeSlot: "Mensual" }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
+    const stations = await prisma.station.findMany({ where, take: Math.min(filters.limit || 50, 200), include: { prices: { where: { timeSlot }, orderBy: { effectiveDate: "desc" } } }, orderBy: { updatedAt: "desc" } });
     return stations.map((station) => {
       const byFuel = new Map<string, number>(); for (const price of station.prices) if (!byFuel.has(price.fuelType)) byFuel.set(price.fuelType, price.price);
       return { id: station.id, govId: station.govId, name: `${station.brandName} - ${station.address}`, rawName: station.name, brand: station.brand, brandName: station.brandName, address: station.address, city: station.city, province: station.province, lat: station.lat, lng: station.lng, prices: { super: byFuel.get("SUPER") || null, premium: byFuel.get("PREMIUM") || null, diesel: byFuel.get("DIESEL") || null, gnc: byFuel.get("GNC") || null }, lastUpdate: station.updatedAt };
@@ -75,7 +77,12 @@ export class PriceService {
   public async setCommunityReportStatus(id: number, status: "APPROVED" | "REJECTED") { return prisma.communityReport.update({ where: { id }, data: { status } }); }
   public async createCommunityReport(data: { userName: string; province: string; city: string; stationName: string; brand: string; fuelType: string; price: number; ipHash?: string }) { return prisma.communityReport.create({ data: { userName: data.userName.trim() || "Conductor anónimo", province: data.province.trim() || "No informado", city: data.city.trim() || "No informado", stationName: data.stationName.trim(), brand: data.brand.trim(), fuelType: data.fuelType.trim(), price: data.price, ipHash: data.ipHash, status: "PENDING" } }); }
   public async likeReport(id: number) { const result = await prisma.communityReport.updateMany({ where: { id, status: "APPROVED" }, data: { likes: { increment: 1 } } }); return result.count === 1; }
-  private emptySummary() { return { companies: [], stats: { superAvg: 0, variationPct: 0, cheapestBrand: "-", cheapestPrice: 0, mostExpensiveBrand: "-", mostExpensivePrice: 0, totalStations: 0, lastUpdated: new Date(0).toISOString() }, isRealData: false }; }
+  private async getActiveTimeSlot() {
+    const monthlyRecords = await prisma.priceRecord.count({ where: { timeSlot: "Mensual" } });
+    return monthlyRecords > 0 ? "Mensual" : "Diurno";
+  }
+
+  private emptySummary() { return { companies: [], stats: { superAvg: 0, variationPct: 0, cheapestBrand: "-", cheapestPrice: 0, mostExpensiveBrand: "-", mostExpensivePrice: 0, totalStations: 0, lastUpdated: new Date(0).toISOString() }, isRealData: false, dataSource: "NONE" }; }
 }
 
 export const priceService = new PriceService();

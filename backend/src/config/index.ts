@@ -11,5 +11,6 @@ export const config = {
   reportRateLimitPerHour: parseInt(process.env.REPORT_RATE_LIMIT_PER_HOUR || "5", 10),
   res1104ZipUrl: process.env.RES1104_ZIP_URL || "http://res1104.se.gob.ar/adjuntos/precios_eess_2025_en_adelante.zip",
   res1104TableName: process.env.RES1104_TABLE_NAME || "public_vi_access_eess_2025_en_adelante",
-  cronSchedule: process.env.CRON_SYNC_SCHEDULE || "0 6 5 * *",
+  cronSchedule: process.env.CRON_SYNC_SCHEDULE || "",
+  manualImportMaxBytes: parseInt(process.env.MANUAL_IMPORT_MAX_BYTES || "2147483648", 10),
 };

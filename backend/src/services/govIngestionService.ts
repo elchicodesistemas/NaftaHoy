@@ -68,7 +68,9 @@ export class GovIngestionService {
     return null;
   }
 
-  public async syncLatestPrices(): Promise<{ success: boolean; records: number; stations: number; error?: string }> {
+  public isSyncInProgress() { return this.isSyncing; }
+
+  public async syncLatestPrices(input?: { archivePath?: string; format?: "zip" | "accdb" }): Promise<{ success: boolean; records: number; stations: number; error?: string }> {
     if (this.isSyncing) return { success: false, records: 0, stations: 0, error: "Ya hay una sincronización en curso" };
 
     this.isSyncing = true;
@@ -77,16 +79,20 @@ export class GovIngestionService {
 
     try {
       workDir = await mkdtemp(join(tmpdir(), "naftahoy-res1104-"));
-      const archivePath = join(workDir, "precios-eess.zip");
+      const archivePath = input?.archivePath || join(workDir, "precios-eess.zip");
       const databasePath = join(workDir, "precios-eess.accdb");
 
-      console.log(`[Ingestion] Descargando archivo oficial RES 1104/2004 desde: ${config.res1104ZipUrl}`);
-      await this.downloadArchive(archivePath);
-      await this.extractAccessDatabase(archivePath, databasePath);
+      if (input?.archivePath) {
+        console.log(`[Ingestion] Procesando carga manual RES 1104/2004: ${basename(input.archivePath)}`);
+      } else {
+        console.log(`[Ingestion] Descargando archivo oficial RES 1104/2004 desde: ${config.res1104ZipUrl}`);
+        await this.downloadArchive(archivePath);
+      }
+      const accessDatabase = input?.format === "accdb" ? archivePath : await this.extractAccessDatabase(archivePath, databasePath);
 
       const stations = new Map<string, StationInput>();
       const prices = new Map<string, PriceInput>();
-      const records = await this.readAccessRows(databasePath, (row) => this.collectRow(row, stations, prices));
+      const records = await this.readAccessRows(accessDatabase, (row) => this.collectRow(row, stations, prices));
       console.log(`[Ingestion] Leídas ${records} filas mensuales. ${stations.size} estaciones y ${prices.size} precios válidos detectados.`);
 
       await this.saveToDatabase(stations, prices);
@@ -113,11 +119,12 @@ export class GovIngestionService {
     }
   }
 
-  private async extractAccessDatabase(archivePath: string, destination: string) {
+  private async extractAccessDatabase(archivePath: string, destination: string): Promise<string> {
     const entries = await this.runCommand("unzip", ["-Z1", archivePath]);
     const entry = entries.split(/\r?\n/).find((name) => name.toLowerCase().endsWith(".accdb"));
     if (!entry) throw new Error("El ZIP de RES 1104/2004 no contiene un archivo .accdb.");
     await this.streamCommandToFile("unzip", ["-p", archivePath, entry], destination);
+    return destination;
   }
 
   private async readAccessRows(databasePath: string, onRow: (row: Res1104Record) => void): Promise<number> {

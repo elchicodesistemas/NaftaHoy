@@ -188,9 +188,10 @@ export class GovIngestionService {
       const batch = priceEntries.slice(index, index + batchSize);
       const commands = batch.flatMap((price) => {
         const stationId = stationIdMap.get(price.stationKey);
+        const { stationKey: _stationKey, ...priceData } = price;
         return stationId ? [prisma.priceRecord.upsert({
           where: { stationId_fuelType_timeSlot_effectiveDate: { stationId, fuelType: price.fuelType, timeSlot: price.timeSlot, effectiveDate: price.effectiveDate } },
-          create: { ...price, stationId },
+          create: { ...priceData, stationId },
           update: { price: price.price, fuelTypeName: price.fuelTypeName, originalProduct: price.originalProduct },
         })] : [];
       });

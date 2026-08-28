@@ -37,7 +37,10 @@ export interface StationDto {
     gnc: number | null;
   };
   lastUpdate: string;
+  distanceKm?: number;
 }
+
+export interface UserLocation { lat: number; lng: number; }
 
 export interface CommunityReportDto {
   id: number;
@@ -53,9 +56,12 @@ export interface CommunityReportDto {
 }
 
 export const api = {
-  async getPriceSummary(province?: string): Promise<PriceSummaryResponse> {
+  async getPriceSummary(province?: string, location?: UserLocation): Promise<PriceSummaryResponse> {
     try {
-      const url = province ? `${API_BASE}/prices/summary?province=${encodeURIComponent(province)}` : `${API_BASE}/prices/summary`;
+      const params = new URLSearchParams();
+      if (province) params.set("province", province);
+      if (location) { params.set("lat", String(location.lat)); params.set("lng", String(location.lng)); params.set("radiusKm", "15"); }
+      const url = `${API_BASE}/prices/summary${params.size ? `?${params.toString()}` : ""}`;
       const res = await fetch(url, { next: { revalidate: 60 } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
@@ -74,11 +80,12 @@ export const api = {
     }
   },
 
-  async getStations(brand?: string, province?: string): Promise<StationDto[]> {
+  async getStations(brand?: string, province?: string, location?: UserLocation): Promise<StationDto[]> {
     try {
       const params = new URLSearchParams();
       if (brand && brand !== "all") params.append("brand", brand);
       if (province) params.append("province", province);
+      if (location) { params.append("lat", String(location.lat)); params.append("lng", String(location.lng)); params.append("radiusKm", "15"); }
       params.append("limit", "150");
 
       const res = await fetch(`${API_BASE}/stations?${params.toString()}`, { cache: "no-store" });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import PriceTable from "@/components/PriceTable";
 import QuickCompare from "@/components/QuickCompare";
@@ -11,13 +11,14 @@ import StationMap from "@/components/StationMap";
 import FuelCalculator from "@/components/FuelCalculator";
 import CommunityReports from "@/components/CommunityReports";
 import Footer from "@/components/Footer";
-import { api, PriceSummaryResponse } from "@/services/api";
+import { api, PriceSummaryResponse, UserLocation } from "@/services/api";
 
 export default function HomeClient({ initialData }: { initialData: PriceSummaryResponse }) {
   const [data, setData] = useState<PriceSummaryResponse>(initialData);
   const [province, setProvince] = useState<string>("");
   const [selectedFuelTab, setSelectedFuelTab] = useState<string>("all");
   const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
 
   const fuelTabs = [
     { id: "all", label: "Todos los combustibles" },
@@ -30,6 +31,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
 
   const handleProvinceChange = async (newProv: string) => {
     setProvince(newProv);
+    setUserLocation(null);
     setLoading(true);
     try {
       const updated = await api.getPriceSummary(newProv || undefined);
@@ -40,6 +42,25 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
       setLoading(false);
     }
   };
+
+  const handleUserLocation = useCallback(async (location: UserLocation) => {
+    setUserLocation(location);
+    setProvince("");
+    setLoading(true);
+    try { setData(await api.getPriceSummary(undefined, location)); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        await handleUserLocation({ lat: coords.latitude, lng: coords.longitude });
+      },
+      () => undefined,
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
+    );
+  }, [handleUserLocation]);
 
   const now = new Date();
   const dateStr = now.toLocaleDateString("es-AR", {
@@ -112,7 +133,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
                 </div>
 
                 <div className="text-xs font-medium text-zinc-400">
-                  {province ? `Zona: ${province}` : "Nivel Nacional"}
+                  {loading ? "Actualizando…" : userLocation ? "Cerca de tu ubicación · 15 km" : province ? `Zona: ${province}` : "Nivel Nacional"}
                 </div>
               </div>
 
@@ -189,7 +210,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
               <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
                 Mapa y Localizador de Estaciones
               </h2>
-              <StationMap />
+              <StationMap userLocation={userLocation || undefined} onUserLocation={handleUserLocation} />
             </div>
 
             {/* Banner horizontal */}

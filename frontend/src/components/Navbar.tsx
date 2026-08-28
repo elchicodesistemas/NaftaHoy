@@ -24,7 +24,7 @@ export default function Navbar({
 
   const provinces = [
     { id: "", label: "Argentina (Todo el país)" },
-    { id: "CABA", label: "CABA" },
+    { id: "Capital Federal", label: "Capital Federal" },
     { id: "BUENOS AIRES", label: "Buenos Aires" },
     { id: "CORDOBA", label: "Córdoba" },
     { id: "SANTA FE", label: "Santa Fe" },

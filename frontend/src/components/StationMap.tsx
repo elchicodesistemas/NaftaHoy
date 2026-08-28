@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { MapPin, Locate, Minus, Plus, Search, Navigation, ChevronDown, ChevronUp, Fuel, ExternalLink } from "lucide-react";
-import { api, StationDto } from "@/services/api";
+import { api, StationDto, UserLocation } from "@/services/api";
 
 const fallbackStations: StationDto[] = [];
 
@@ -31,7 +31,7 @@ const fuelTypeKeys: Record<string, { label: string; key: "super" | "premium" | "
   gnc: { label: "GNC", key: "gnc" },
 };
 
-export default function StationMap() {
+export default function StationMap({ userLocation, onUserLocation }: { userLocation?: UserLocation; onUserLocation?: (location: UserLocation) => void }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersGroupRef = useRef<any>(null);
@@ -48,7 +48,7 @@ export default function StationMap() {
   useEffect(() => {
     async function loadStations() {
       try {
-        const data = await api.getStations(selectedBrand === "all" ? undefined : selectedBrand);
+        const data = await api.getStations(selectedBrand === "all" ? undefined : selectedBrand, undefined, userLocation);
         if (data && data.length > 0) {
           setRawStations(data);
         }
@@ -57,7 +57,7 @@ export default function StationMap() {
       }
     }
     loadStations();
-  }, [selectedBrand]);
+  }, [selectedBrand, userLocation]);
 
   // Filtrar estaciones en memoria por búsqueda
   const filteredStations = useMemo(() => {
@@ -200,13 +200,19 @@ export default function StationMap() {
     }
   }, [filteredStations, selectedFuel, loaded, addMarkers]);
 
+  useEffect(() => {
+    if (loaded && userLocation) mapInstanceRef.current?.setView([userLocation.lat, userLocation.lng], 14);
+  }, [loaded, userLocation]);
+
   const handleLocate = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+          const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          map.setView([location.lat, location.lng], 15);
+          onUserLocation?.(location);
         },
         () => {
           alert("No se pudo obtener tu ubicación");
@@ -324,7 +330,7 @@ export default function StationMap() {
       {showList && (
         <div className="p-4 border-t border-surface-200 dark:border-dark-border bg-surface-50 dark:bg-dark-surface max-h-60 overflow-y-auto divide-y divide-surface-100 dark:divide-dark-border">
           <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
-            Estaciones ordenadas por precio ({fuelTypeKeys[selectedFuel]?.label})
+            {userLocation ? "Estaciones más cercanas" : "Estaciones ordenadas por precio"} ({fuelTypeKeys[selectedFuel]?.label})
           </h4>
           {filteredStations.slice(0, 20).map((st) => {
             const price = st.prices?.[selectedFuel as "super"];
@@ -332,7 +338,7 @@ export default function StationMap() {
               <div key={st.id} className="py-2 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{st.name || st.rawName}</div>
-                  <div className="text-[11px] text-zinc-400">{st.address} {st.city ? `(${st.city})` : ""}</div>
+                  <div className="text-[11px] text-zinc-400">{st.address} {st.city ? `(${st.city})` : ""}{st.distanceKm !== undefined ? ` · ${st.distanceKm.toFixed(1)} km` : ""}</div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-extrabold text-zinc-800 dark:text-zinc-100 tabular-nums">

@@ -10,12 +10,15 @@ router.get("/", async (req: Request, res: Response) => {
     const province = req.query.province as string | undefined;
     const city = req.query.city as string | undefined;
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+    const location = parseLocation(req);
+    if (location === null) return res.status(400).json({ error: "lat y lng deben ser números válidos" });
 
     const stations = await priceService.getStations({
       brand,
       province,
       city,
       limit,
+      location: location || undefined,
     });
 
     res.json({
@@ -28,3 +31,12 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 export default router;
+
+function parseLocation(req: Request) {
+  if (req.query.lat === undefined && req.query.lng === undefined) return undefined;
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  const radiusKm = req.query.radiusKm === undefined ? undefined : Number(req.query.radiusKm);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || (radiusKm !== undefined && !Number.isFinite(radiusKm))) return null;
+  return { lat, lng, radiusKm };
+}

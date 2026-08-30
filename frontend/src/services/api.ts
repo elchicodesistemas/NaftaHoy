@@ -41,6 +41,8 @@ export interface StationDto {
 }
 
 export interface UserLocation { lat: number; lng: number; }
+export interface FuelQualityPollResponse { totalVotes: number; options: { brand: string; name: string; votes: number; percentage: number }[]; }
+export interface AdDto { id: string; name: string; imageUrl: string | null; destinationUrl: string; placement: string; campaign: { name: string; advertiser: { name: string } }; }
 
 export interface CommunityReportDto {
   id: number;
@@ -56,6 +58,18 @@ export interface CommunityReportDto {
 }
 
 export const api = {
+  async getFuelQualityPoll(): Promise<FuelQualityPollResponse | null> {
+    try { const res = await fetch(`${API_BASE}/polls/fuel-quality`, { cache: "no-store", credentials: "same-origin" }); return res.ok ? res.json() : null; } catch { return null; }
+  },
+  async voteFuelQuality(brand: string): Promise<{ poll?: FuelQualityPollResponse; error?: string }> {
+    try { const res = await fetch(`${API_BASE}/polls/fuel-quality/vote`, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brand }) }); const body = await res.json(); return res.ok ? { poll: body } : { poll: body.poll, error: body.error || "No se pudo registrar el voto" }; } catch { return { error: "No se pudo registrar el voto" }; }
+  },
+  async getActiveAd(placement: string): Promise<AdDto | null> {
+    try { const res = await fetch(`${API_BASE}/ads/${encodeURIComponent(placement)}`, { cache: "no-store" }); if (!res.ok) return null; return (await res.json()).ad || null; } catch { return null; }
+  },
+  async recordAdEvent(adId: string, kind: "impression" | "click", placement: string, pagePath: string, visitorId: string) {
+    try { await fetch(`${API_BASE}/ads/${adId}/${kind}`, { method: "POST", keepalive: true, headers: { "Content-Type": "application/json", "X-Naftahoy-Visitor-Id": visitorId }, body: JSON.stringify({ placement, pagePath }) }); } catch { /* La publicidad no debe afectar la navegación. */ }
+  },
   async getPriceSummary(province?: string, location?: UserLocation): Promise<PriceSummaryResponse> {
     try {
       const params = new URLSearchParams();

@@ -1,0 +1,2 @@
+# Archivo de bloqueo de Prisma: todas las migraciones de este proyecto usan PostgreSQL.
+provider = "postgresql"

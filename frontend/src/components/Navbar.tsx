@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Fuel, Menu, X, MapPin } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import ShareButton from "./ShareButton";
 
 const navLinks = [
-  { label: "Precios", href: "#precios" },
-  { label: "Comparador", href: "#comparar" },
-  { label: "Mapa", href: "#mapa" },
-  { label: "Calculadora", href: "#calculadora" },
-  { label: "Noticias", href: "#noticias" },
+  { label: "Precios", href: "/#precios" },
+  { label: "Comparador", href: "/#comparar" },
+  { label: "Mapa", href: "/#mapa" },
+  { label: "Calculadora", href: "/#calculadora" },
+  { label: "Noticias", href: "/#noticias" },
 ];
 
 export default function Navbar({
@@ -39,14 +40,14 @@ export default function Navbar({
       <div className="max-w-content mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Fuel className="w-4 h-4 text-brand-primary" />
             </div>
             <span className="text-lg font-extrabold tracking-tight text-zinc-800 dark:text-zinc-100">
               Nafta<span className="text-brand-primary">Hoy</span>
             </span>
-          </a>
+          </Link>
 
           {/* Selector de provincia */}
           {onSelectProvince && (
@@ -69,13 +70,13 @@ export default function Navbar({
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 className="px-3 py-1.5 rounded-md text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-surface-100 dark:hover:bg-dark-card transition-colors"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -124,14 +125,14 @@ export default function Navbar({
 
             <div className="grid grid-cols-2 gap-1 pt-1">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.label}
                   href={link.href}
                   className="block px-3 py-2 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-surface-100 dark:hover:bg-dark-card"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>

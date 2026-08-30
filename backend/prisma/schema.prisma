@@ -22,6 +22,7 @@ model Station {
   lat         Float?
   lng         Float?
   prices      PriceRecord[]
+  ratings     StationRating[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -76,4 +77,99 @@ model CommunityReport {
 
   @@index([createdAt])
   @@index([status])
+}
+
+model FuelQualityVote {
+  id        Int      @id @default(autoincrement())
+  visitorId String   @unique
+  brand     String
+  createdAt DateTime @default(now())
+
+  @@index([brand])
+  @@index([createdAt])
+}
+
+model StationRating {
+  id             Int      @id @default(autoincrement())
+  stationId      String
+  station        Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  visitorId      String
+  fuelQuality    Int
+  service        Int
+  cleanliness    Int
+  speed          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([stationId, visitorId])
+  @@index([stationId, createdAt])
+}
+
+model Advertiser {
+  id        String     @id @default(uuid())
+  name      String
+  contact   String?
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  campaigns Campaign[]
+
+  @@index([active])
+}
+
+model Campaign {
+  id           String     @id @default(uuid())
+  advertiserId String
+  advertiser   Advertiser @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  name         String
+  startsAt     DateTime
+  endsAt       DateTime?
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  ads          Ad[]
+
+  @@index([advertiserId])
+  @@index([active, startsAt, endsAt])
+}
+
+model Ad {
+  id             String         @id @default(uuid())
+  campaignId     String
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name           String
+  imageUrl       String?
+  destinationUrl String
+  placement      String
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  impressions    AdImpression[]
+  clicks         AdClick[]
+
+  @@index([campaignId])
+  @@index([placement, active])
+}
+
+model AdImpression {
+  id        Int      @id @default(autoincrement())
+  adId      String
+  ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  pagePath  String
+  placement String
+  visitorId String?
+  createdAt DateTime @default(now())
+
+  @@index([adId, createdAt])
+  @@index([placement, createdAt])
+}
+
+model AdClick {
+  id        Int      @id @default(autoincrement())
+  adId      String
+  ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  pagePath  String
+  placement String
+  visitorId String?
+  createdAt DateTime @default(now())
+
+  @@index([adId, createdAt])
+  @@index([placement, createdAt])
 }

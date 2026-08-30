@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: public.ecr.aws/docker/library/postgres:16-alpine
+    container_name: naftahoy-staging-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: naftahoy_staging
+      POSTGRES_USER: naftahoy_staging
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?Definí STAGING_POSTGRES_PASSWORD en .env.staging}
+    volumes:
+      - staging-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U naftahoy_staging -d naftahoy_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: ../infrastructure/docker/backend.Dockerfile
+    container_name: naftahoy-staging-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      NODE_ENV: staging
+      DATABASE_URL: postgresql://naftahoy_staging:${STAGING_POSTGRES_PASSWORD}@postgres:5432/naftahoy_staging?schema=public
+      CORS_ORIGIN: https://naftahoy.com
+      SYNC_API_TOKEN: ${STAGING_SYNC_API_TOKEN:?Definí STAGING_SYNC_API_TOKEN en .env.staging}
+      ADMIN_API_TOKEN: ${STAGING_ADMIN_API_TOKEN:?Definí STAGING_ADMIN_API_TOKEN en .env.staging}
+      VOTE_TOKEN_SECRET: ${STAGING_VOTE_TOKEN_SECRET:?Definí STAGING_VOTE_TOKEN_SECRET en .env.staging}
+      VOTE_COOKIE_NAME: naftahoy_staging_vote
+      VOTE_COOKIE_PATH: /staging
+      CRON_SYNC_SCHEDULE: ""
+    ports:
+      - "127.0.0.1:3003:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: ../infrastructure/docker/frontend.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://naftahoy.com/staging/api
+        NEXT_PUBLIC_BASE_PATH: /staging
+    container_name: naftahoy-staging-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: https://naftahoy.com/staging/api
+      NEXT_PUBLIC_BASE_PATH: /staging
+      PORT: 3000
+    ports:
+      - "127.0.0.1:3002:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  staging-postgres-data:

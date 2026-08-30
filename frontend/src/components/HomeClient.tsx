@@ -6,7 +6,8 @@ import PriceTable from "@/components/PriceTable";
 import QuickCompare from "@/components/QuickCompare";
 import MiniTrend from "@/components/MiniTrend";
 import StatsBar from "@/components/StatsBar";
-import AdBanner from "@/components/AdBanner";
+import AdSlot from "@/components/AdSlot";
+import FuelQualityPoll from "@/components/FuelQualityPoll";
 import StationMap from "@/components/StationMap";
 import FuelCalculator from "@/components/FuelCalculator";
 import CommunityReports from "@/components/CommunityReports";
@@ -104,7 +105,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
 
       {/* Banner horizontal top */}
       <div className="max-w-content mx-auto px-4 mt-3">
-        <AdBanner position="horizontal" />
+        <AdSlot placement="home-top" />
       </div>
 
       {/* Layout principal */}
@@ -112,7 +113,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
         <div className="flex gap-4">
           {/* Sidebar izquierdo — Ads */}
           <aside className="hidden lg:block w-[160px] shrink-0">
-            <AdBanner position="sidebar" size="large" />
+            <AdSlot placement="sidebar" />
           </aside>
 
           {/* Contenido principal */}
@@ -145,6 +146,10 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
             {/* Stats rápidas */}
             <div className="mb-5">
               <StatsBar stats={data.stats} />
+            </div>
+
+            <div className="mb-5">
+              <FuelQualityPoll />
             </div>
 
             {/* Selector de pestañas rápidas por combustible */}
@@ -186,7 +191,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
 
             {/* Banner horizontal medio */}
             <div className="mb-6">
-              <AdBanner position="horizontal" />
+              <AdSlot placement="home-middle" />
             </div>
 
             {/* Comparativa + Tendencia */}
@@ -215,15 +220,14 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
 
             {/* Banner horizontal */}
             <div className="mb-6">
-              <AdBanner position="horizontal" />
+              <AdSlot placement="home-middle" />
             </div>
 
           </main>
 
           {/* Sidebar derecho — Ads */}
           <aside className="hidden lg:block w-[160px] shrink-0 space-y-4">
-            <AdBanner position="sidebar" size="medium" />
-            <AdBanner position="sidebar" size="small" />
+            <AdSlot placement="sidebar" />
           </aside>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { Fuel, ArrowUp } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -29,19 +30,19 @@ export default function Footer() {
             </h4>
             <div className="space-y-1.5">
               {[
-                { label: "Nafta Súper", href: "#precios" },
-                { label: "Nafta Premium", href: "#precios" },
-                { label: "Diesel Común", href: "#precios" },
-                { label: "Diesel Premium", href: "#precios" },
-                { label: "GNC", href: "#precios" },
+                { label: "Nafta Súper", href: "/#precios" },
+                { label: "Nafta Premium", href: "/#precios" },
+                { label: "Diesel Común", href: "/#precios" },
+                { label: "Diesel Premium", href: "/#precios" },
+                { label: "GNC", href: "/#precios" },
               ].map((f) => (
-                <a
+                <Link
                   key={f.label}
                   href={f.href}
                   className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                 >
                   {f.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -52,19 +53,19 @@ export default function Footer() {
             </h4>
             <div className="space-y-1.5">
               {[
-                { label: "YPF", href: "#precios" },
-                { label: "Shell", href: "#precios" },
-                { label: "Axion Energy", href: "#precios" },
-                { label: "Puma Energy", href: "#precios" },
-                { label: "DAPSA / Gulf", href: "#mapa" },
+                { label: "YPF", href: "/#precios" },
+                { label: "Shell", href: "/#precios" },
+                { label: "Axion Energy", href: "/#precios" },
+                { label: "Puma Energy", href: "/#precios" },
+                { label: "DAPSA / Gulf", href: "/#mapa" },
               ].map((c) => (
-                <a
+                <Link
                   key={c.label}
                   href={c.href}
                   className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                 >
                   {c.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -75,19 +76,19 @@ export default function Footer() {
             </h4>
             <div className="space-y-1.5">
               {[
-                { label: "Comparador de precios", href: "#comparar" },
-                { label: "Mapa interactivo de estaciones", href: "#mapa" },
-                { label: "Calculadora de tanque", href: "#calculadora" },
-                { label: "Últimas noticias y avisos", href: "#noticias" },
-                { label: "Reportes comunitarios", href: "#precios" },
+                { label: "Comparador de precios", href: "/#comparar" },
+                { label: "Mapa interactivo de estaciones", href: "/#mapa" },
+                { label: "Calculadora de tanque", href: "/#calculadora" },
+                { label: "Últimas noticias y avisos", href: "/#noticias" },
+                { label: "Reportes comunitarios", href: "/#precios" },
               ].map((t) => (
-                <a
+                <Link
                   key={t.label}
                   href={t.href}
                   className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                 >
                   {t.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -100,6 +101,7 @@ export default function Footer() {
           <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
             Los precios son informativos y corresponden a declaraciones oficiales en surtidor.
           </span>
+          <Link href="/privacidad" className="text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">Privacidad</Link>
         </div>
       </div>
     </footer>

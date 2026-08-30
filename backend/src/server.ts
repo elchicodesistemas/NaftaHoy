@@ -7,6 +7,8 @@ import stationsRouter from "./routes/stations";
 import reportsRouter from "./routes/reports";
 import syncRouter from "./routes/sync";
 import importsRouter from "./routes/imports";
+import pollsRouter from "./routes/polls";
+import adsRouter from "./routes/ads";
 import { initCronWorker } from "./workers/cronWorker";
 
 const app = express();
@@ -41,6 +43,8 @@ app.use("/api/stations", stationsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/sync", syncRouter);
 app.use("/api/admin/imports", importsRouter);
+app.use("/api/polls", pollsRouter);
+app.use("/api/ads", adsRouter);
 
 // Health check
 app.get("/api/health", async (_req: Request, res: Response) => {

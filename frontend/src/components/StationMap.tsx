@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { MapPin, Locate, Minus, Plus, Search, Navigation, ChevronDown, ChevronUp, Fuel, ExternalLink } from "lucide-react";
 import { api, StationDto, UserLocation } from "@/services/api";
+import { trackEvent } from "@/services/analytics";
 
 const fallbackStations: StationDto[] = [];
 
@@ -68,6 +69,10 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
     loadStations();
     return () => { active = false; };
   }, [selectedBrand, userLocation, debouncedSearch]);
+
+  useEffect(() => {
+    if (debouncedSearch) trackEvent("search_performed", { query_length: debouncedSearch.length, scope: "stations" });
+  }, [debouncedSearch]);
 
   // Filtrar estaciones en memoria por búsqueda
   const filteredStations = useMemo(() => {
@@ -140,6 +145,7 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
       `;
 
       marker.bindPopup(popupHtml);
+      marker.on("popupopen", () => trackEvent("station_viewed", { station_id: station.id, brand: station.brand }));
       group.addLayer(marker);
     });
   }, []);

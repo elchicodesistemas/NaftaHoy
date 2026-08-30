@@ -140,10 +140,6 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
               <StatsBar stats={data.stats} />
             </div>
 
-            <div className="mb-5">
-              <FuelQualityPoll />
-            </div>
-
             {/* Selector de pestañas rápidas por combustible */}
             <div id="precios" className="mb-4">
               <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -179,6 +175,11 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
                 ))}
                 {displayCompanies.length === 0 && <p className="text-sm text-zinc-500">No hay precios oficiales disponibles todavía para esta zona.</p>}
               </div>
+            </div>
+
+            {/* Encuesta comunitaria: después de la consulta principal de precios */}
+            <div className="mb-6">
+              <FuelQualityPoll />
             </div>
 
             {/* Banner horizontal medio */}

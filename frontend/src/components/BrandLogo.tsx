@@ -61,5 +61,15 @@ export default function BrandLogo({ brand, size = 28 }: BrandLogoProps) {
     ),
   };
 
-  return logos[brand] || logos.ypf;
+  if (logos[brand]) return logos[brand];
+
+  const initials = brand === "blanca" ? "SB" : brand.slice(0, 2).toUpperCase();
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label={`Marca ${brand}`}>
+      <rect width="32" height="32" rx="6" fill="#475569" />
+      <text x="16" y="21" textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Inter, sans-serif">
+        {initials}
+      </text>
+    </svg>
+  );
 }

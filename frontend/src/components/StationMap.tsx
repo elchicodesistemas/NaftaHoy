@@ -6,6 +6,7 @@ import { api, StationDto, UserLocation } from "@/services/api";
 import { trackEvent } from "@/services/analytics";
 
 const fallbackStations: StationDto[] = [];
+const cartoBasemapKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY;
 
 const brandColors: Record<string, string> = {
   ypf: "#0B3D91",
@@ -184,8 +185,9 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
         zoomControl: false,
       }).setView([-34.5997, -58.4297], 13);
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoBasemapKey || "")}`, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
 

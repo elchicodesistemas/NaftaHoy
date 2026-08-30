@@ -14,7 +14,7 @@ import CommunityReports from "@/components/CommunityReports";
 import Footer from "@/components/Footer";
 import { api, PriceSummaryResponse, UserLocation } from "@/services/api";
 
-export default function HomeClient({ initialData }: { initialData: PriceSummaryResponse }) {
+export default function HomeClient({ initialData, todayLabel }: { initialData: PriceSummaryResponse; todayLabel: string }) {
   const [data, setData] = useState<PriceSummaryResponse>(initialData);
   const [province, setProvince] = useState<string>("");
   const [selectedFuelTab, setSelectedFuelTab] = useState<string>("all");
@@ -62,14 +62,6 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
     );
   }, [handleUserLocation]);
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("es-AR", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 
   // Filtrar compañías / combustibles según tab seleccionado
   const displayCompanies = data.companies.map((comp) => {
@@ -139,7 +131,7 @@ export default function HomeClient({ initialData }: { initialData: PriceSummaryR
               </div>
 
               <p className="text-sm text-zinc-400 dark:text-zinc-500 capitalize mt-1">
-                {dateStr} — Precios en surtidor según la última actualización disponible
+                {todayLabel} — Precios en surtidor según la última actualización disponible
               </p>
             </div>
 

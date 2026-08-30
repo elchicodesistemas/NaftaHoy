@@ -29,7 +29,12 @@ function Change({ current, prev }: { current: number; prev: number }) {
 
 export default function PriceTable({ company }: { company: Company }) {
   const time = new Date(company.lastUpdate);
-  const timeStr = `${time.getHours()}:${time.getMinutes().toString().padStart(2, "0")}`;
+  const timeStr = new Intl.DateTimeFormat("en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(time);
 
   // Color por marca
   const brandColors: Record<string, string> = {

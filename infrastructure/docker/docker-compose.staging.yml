@@ -51,11 +51,13 @@ services:
       args:
         NEXT_PUBLIC_API_URL: https://naftahoy.com/staging/api
         NEXT_PUBLIC_BASE_PATH: /staging
+        NEXT_PUBLIC_CARTO_BASEMAP_KEY: ${STAGING_CARTO_BASEMAP_KEY:?Definí STAGING_CARTO_BASEMAP_KEY en .env.staging}
     container_name: naftahoy-staging-frontend
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: https://naftahoy.com/staging/api
       NEXT_PUBLIC_BASE_PATH: /staging
+      NEXT_PUBLIC_CARTO_BASEMAP_KEY: ${STAGING_CARTO_BASEMAP_KEY:?Definí STAGING_CARTO_BASEMAP_KEY en .env.staging}
       PORT: 3000
     ports:
       - "127.0.0.1:3002:3000"

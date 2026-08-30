@@ -49,10 +49,12 @@ services:
       dockerfile: ../infrastructure/docker/frontend.Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://naftahoy.com/api
+        NEXT_PUBLIC_CARTO_BASEMAP_KEY: ${CARTO_BASEMAP_KEY:?Definí CARTO_BASEMAP_KEY en infrastructure/docker/.env}
     container_name: naftahoy-frontend
     restart: always
     environment:
       - NEXT_PUBLIC_API_URL=https://naftahoy.com/api
+      - NEXT_PUBLIC_CARTO_BASEMAP_KEY=${CARTO_BASEMAP_KEY:?Definí CARTO_BASEMAP_KEY en infrastructure/docker/.env}
       - PORT=3000
     ports:
       - "127.0.0.1:3000:3000"

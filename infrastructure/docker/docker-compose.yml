@@ -28,6 +28,9 @@ services:
       - CORS_ORIGIN=http://naftahoy.com,https://naftahoy.com,http://localhost:3000
       - SYNC_API_TOKEN=${SYNC_API_TOKEN:?Definí SYNC_API_TOKEN en infrastructure/docker/.env}
       - ADMIN_API_TOKEN=${ADMIN_API_TOKEN:?Definí ADMIN_API_TOKEN en infrastructure/docker/.env}
+      - VOTE_TOKEN_SECRET=${VOTE_TOKEN_SECRET:?Definí VOTE_TOKEN_SECRET en infrastructure/docker/.env}
+      - VOTE_COOKIE_NAME=naftahoy_vote
+      - VOTE_COOKIE_PATH=/
     ports:
       - "127.0.0.1:3001:3001"
     healthcheck:

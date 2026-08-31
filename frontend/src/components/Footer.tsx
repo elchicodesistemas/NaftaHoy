@@ -1,7 +1,9 @@
 import { Fuel, ArrowUp } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   const scrollToTop = () => {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -103,6 +105,20 @@ export default function Footer() {
           </span>
           <Link href="/privacidad" className="text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">Privacidad</Link>
         </div>
+
+        <a
+          href="https://elchicodesistemas.com.ar/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-5 flex w-fit mx-auto items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-surface-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-dark-card dark:hover:text-zinc-100"
+          aria-label="Desarrollado por El Chico de Sistemas — abrir sitio web"
+        >
+          <span>Desarrollado por</span>
+          <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-surface-200 dark:ring-dark-border">
+            <Image src={`${basePath}/el-chico-de-sistemas.png`} alt="Logo de El Chico de Sistemas" width={28} height={28} unoptimized className="h-full w-full object-cover" />
+          </span>
+          <span className="font-semibold text-zinc-700 dark:text-zinc-200">El Chico de Sistemas</span>
+        </a>
       </div>
     </footer>
   );

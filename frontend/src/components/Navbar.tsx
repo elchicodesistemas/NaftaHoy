@@ -12,6 +12,7 @@ const navLinks = [
   { label: "Mapa", href: "/#mapa" },
   { label: "Calculadora", href: "/#calculadora" },
   { label: "Noticias", href: "/#noticias" },
+  { label: "Anunciá en NaftaHoy", href: "/publicidad" },
 ];
 
 export default function Navbar({

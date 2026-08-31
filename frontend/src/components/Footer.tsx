@@ -83,6 +83,7 @@ export default function Footer() {
                 { label: "Calculadora de tanque", href: "/#calculadora" },
                 { label: "Últimas noticias y avisos", href: "/#noticias" },
                 { label: "Reportes comunitarios", href: "/#precios" },
+                { label: "Anunciá en NaftaHoy", href: "/publicidad" },
               ].map((t) => (
                 <Link
                   key={t.label}

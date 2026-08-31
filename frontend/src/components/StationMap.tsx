@@ -37,6 +37,7 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersGroupRef = useRef<any>(null);
+  const userLocationMarkerRef = useRef<any>(null);
   const leafletRef = useRef<any>(null);
 
   const [loaded, setLoaded] = useState(false);
@@ -207,6 +208,7 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
         markersGroupRef.current = null;
+        userLocationMarkerRef.current = null;
         leafletRef.current = null;
       }
     };
@@ -219,7 +221,32 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
   }, [filteredStations, selectedFuel, loaded, addMarkers]);
 
   useEffect(() => {
-    if (loaded && userLocation) mapInstanceRef.current?.setView([userLocation.lat, userLocation.lng], 14);
+    const map = mapInstanceRef.current;
+    const L = leafletRef.current;
+    if (!loaded || !userLocation || !map || !L) return;
+
+    const position = [userLocation.lat, userLocation.lng];
+    const userIcon = L.divIcon({
+      className: "",
+      html: `<div style="width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 7px rgba(37,99,235,.13);">
+        <div style="width:14px;height:14px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35);"></div>
+      </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -16],
+    });
+
+    if (userLocationMarkerRef.current) {
+      userLocationMarkerRef.current.setLatLng(position);
+    } else {
+      userLocationMarkerRef.current = L.marker(position, {
+        icon: userIcon,
+        zIndexOffset: 1000,
+        title: "Tu ubicación",
+      }).bindPopup("<strong>Estás aquí</strong>").addTo(map);
+    }
+
+    map.setView(position, 14);
   }, [loaded, userLocation]);
 
   useEffect(() => {

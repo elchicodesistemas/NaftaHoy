@@ -2,6 +2,7 @@ import HomeClient from "@/components/HomeClient";
 import { api } from "@/services/api";
 
 export const revalidate = 60; // Revalidación ISR cada 60s
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [initialData, seoLocations] = await Promise.all([api.getPriceSummary(), api.getSeoLocations()]);

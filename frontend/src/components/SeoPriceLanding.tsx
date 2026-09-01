@@ -4,6 +4,10 @@ import BrandLogo from "./BrandLogo";
 import type { SeoLandingResponse } from "@/services/api";
 
 const pesos = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+const fuelLinks = [
+  { slug: "nafta-super", label: "Nafta Súper" }, { slug: "nafta-premium", label: "Nafta Premium" },
+  { slug: "gasoil", label: "Gasoil" }, { slug: "gnc", label: "GNC" },
+];
 
 function locationLabel(data: SeoLandingResponse) {
   return [data.filters.city?.name, data.filters.province?.name].filter(Boolean).join(", ");
@@ -24,7 +28,7 @@ export default function SeoPriceLanding({ data }: { data: SeoLandingResponse }) 
         <Link href="/" className="hover:text-brand-dark">Inicio</Link><span>/</span>
         {data.filters.province && <><Link href={`/${data.filters.province.slug}`} className="hover:text-brand-dark">{data.filters.province.name}</Link><span>/</span></>}
         {data.filters.city && <><Link href={locationHref} className="hover:text-brand-dark">{data.filters.city.name}</Link><span>/</span></>}
-        <span className="text-zinc-700 dark:text-zinc-200">{data.fuel.name}</span>
+        <span className="text-zinc-700 dark:text-zinc-200">{data.filters.fuel?.name || "Precios"}</span>
       </nav>
 
       <section className="rounded-3xl border border-surface-200 bg-gradient-to-br from-white to-amber-50/70 p-6 shadow-sm dark:border-dark-border dark:from-dark-card dark:to-dark-surface md:p-9">
@@ -69,6 +73,25 @@ export default function SeoPriceLanding({ data }: { data: SeoLandingResponse }) 
           ))}
         </div>
       </section>
+
+      {data.filters.province && !data.filters.city && data.relatedLocations.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Localidades con precios de combustibles en {data.filters.province.name}</h2>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Elegí una localidad para consultar las estaciones y los precios disponibles.</p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {data.relatedLocations.map((location) => <Link key={location.slug} href={`/${data.filters.province!.slug}/${location.slug}`} className="rounded-xl border border-surface-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-brand-primary hover:text-brand-dark dark:border-dark-border dark:bg-dark-card dark:text-zinc-200">{location.name}<ArrowRight className="float-right h-4 w-4" /></Link>)}
+          </div>
+        </section>
+      )}
+
+      {data.filters.city && (
+        <section className="mt-10 rounded-2xl border border-surface-200 bg-surface-50 p-5 dark:border-dark-border dark:bg-dark-surface">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Otros combustibles en {data.filters.city.name}</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {fuelLinks.map((fuel) => <Link key={fuel.slug} href={`${locationHref}/${fuel.slug}`} className={`rounded-lg px-3 py-2 text-xs font-bold ${data.filters.fuel?.slug === fuel.slug ? "bg-brand-primary text-white" : "bg-white text-zinc-600 ring-1 ring-surface-200 hover:text-brand-dark dark:bg-dark-card dark:text-zinc-200 dark:ring-dark-border"}`}>{fuel.label}</Link>)}
+          </div>
+        </section>
+      )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>

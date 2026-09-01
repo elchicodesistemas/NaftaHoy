@@ -86,6 +86,12 @@ export class SeoService {
         province: record.station.province,
         price: Math.round(record.price),
       }));
+    const relatedLocations = province
+      ? [...new Set(locations.filter((item) => item.province === province).map((item) => item.city))]
+        .filter((item) => item !== city)
+        .sort()
+        .map((item) => ({ name: this.displayLocation(item), slug: toSlug(item) }))
+      : [];
 
     return {
       filters: {
@@ -104,6 +110,7 @@ export class SeoService {
       },
       cheapestStations,
       brandAverages: byBrand,
+      relatedLocations,
     };
   }
 
@@ -118,7 +125,7 @@ export class SeoService {
     return [...provinces.entries()].map(([province, cities]) => ({
       province: { name: this.displayLocation(province), slug: toSlug(province) },
       cities: [...cities].sort().map((city) => ({ name: this.displayLocation(city), slug: toSlug(city) })),
-    }));
+    })).sort((a, b) => a.province.name.localeCompare(b.province.name, "es"));
   }
 
   private async getActiveTimeSlot() {

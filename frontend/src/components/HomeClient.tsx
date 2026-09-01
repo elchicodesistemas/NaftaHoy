@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PriceTable from "@/components/PriceTable";
 import QuickCompare from "@/components/QuickCompare";
@@ -12,9 +13,9 @@ import StationMap from "@/components/StationMap";
 import FuelCalculator from "@/components/FuelCalculator";
 import CommunityReports from "@/components/CommunityReports";
 import Footer from "@/components/Footer";
-import { api, PriceSummaryResponse, UserLocation } from "@/services/api";
+import { api, PriceSummaryResponse, SeoLocationDto, UserLocation } from "@/services/api";
 
-export default function HomeClient({ initialData, todayLabel }: { initialData: PriceSummaryResponse; todayLabel: string }) {
+export default function HomeClient({ initialData, seoLocations, todayLabel }: { initialData: PriceSummaryResponse; seoLocations: SeoLocationDto[]; todayLabel: string }) {
   const [data, setData] = useState<PriceSummaryResponse>(initialData);
   const [province, setProvince] = useState<string>("");
   const [selectedFuelTab, setSelectedFuelTab] = useState<string>("all");
@@ -139,6 +140,17 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
             <div className="mb-5">
               <StatsBar stats={data.stats} />
             </div>
+
+            {seoLocations.length > 0 && (
+              <section className="mb-6 rounded-2xl border border-surface-200 bg-white p-4 dark:border-dark-border dark:bg-dark-card">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div><h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-100">Consultá precios por provincia</h2><p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Elegí una provincia para ver sus localidades y precios actualizados.</p></div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {seoLocations.slice(0, 16).map(({ province, cities }) => <Link key={province.slug} href={`/${province.slug}`} className="rounded-lg border border-surface-200 px-3 py-2 text-xs font-semibold text-zinc-600 transition-colors hover:border-brand-primary hover:text-brand-dark dark:border-dark-border dark:text-zinc-300">{province.name}<span className="ml-1.5 text-zinc-400">{cities.length}</span></Link>)}
+                </div>
+              </section>
+            )}
 
             {/* Selector de pestañas rápidas por combustible */}
             <div id="precios" className="mb-4">

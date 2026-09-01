@@ -51,6 +51,7 @@ export interface SeoLandingResponse {
   stats: { average: number; minimum: number; maximum: number; stations: number; lastUpdated: string };
   cheapestStations: { id: string; name: string; brand: string; brandName: string; address: string; city: string; province: string; price: number }[];
   brandAverages: { id: string; name: string; average: number; stations: number }[];
+  relatedLocations: { name: string; slug: string }[];
 }
 
 export interface SeoLocationDto { province: { name: string; slug: string }; cities: { name: string; slug: string }[]; }

@@ -15,12 +15,13 @@ import CommunityReports from "@/components/CommunityReports";
 import Footer from "@/components/Footer";
 import { api, PriceSummaryResponse, SeoLocationDto, UserLocation } from "@/services/api";
 
-export default function HomeClient({ initialData, seoLocations, todayLabel }: { initialData: PriceSummaryResponse; seoLocations: SeoLocationDto[]; todayLabel: string }) {
+export default function HomeClient({ initialData, todayLabel }: { initialData: PriceSummaryResponse; todayLabel: string }) {
   const [data, setData] = useState<PriceSummaryResponse>(initialData);
   const [province, setProvince] = useState<string>("");
   const [selectedFuelTab, setSelectedFuelTab] = useState<string>("all");
   const [loading, setLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [seoLocations, setSeoLocations] = useState<SeoLocationDto[]>([]);
 
   const fuelTabs = [
     { id: "all", label: "Todos los combustibles" },
@@ -63,6 +64,10 @@ export default function HomeClient({ initialData, seoLocations, todayLabel }: { 
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
     );
   }, [handleUserLocation]);
+
+  useEffect(() => {
+    api.getSeoLocations().then(setSeoLocations);
+  }, []);
 
   // Filtrar compañías / combustibles según tab seleccionado
   const displayCompanies = data.companies.map((comp) => {

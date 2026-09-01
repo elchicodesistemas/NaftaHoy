@@ -32,11 +32,10 @@ export default function Footer() {
             </h4>
             <div className="space-y-1.5">
               {[
-                { label: "Nafta Súper", href: "/#precios" },
-                { label: "Nafta Premium", href: "/#precios" },
-                { label: "Diesel Común", href: "/#precios" },
-                { label: "Diesel Premium", href: "/#precios" },
-                { label: "GNC", href: "/#precios" },
+                { label: "Nafta Súper", href: "/precio-nafta-super" },
+                { label: "Nafta Premium", href: "/precio-nafta-premium" },
+                { label: "Gasoil", href: "/precio-gasoil" },
+                { label: "GNC", href: "/precio-gnc" },
               ].map((f) => (
                 <Link
                   key={f.label}
@@ -55,10 +54,10 @@ export default function Footer() {
             </h4>
             <div className="space-y-1.5">
               {[
-                { label: "YPF", href: "/#precios" },
-                { label: "Shell", href: "/#precios" },
-                { label: "Axion Energy", href: "/#precios" },
-                { label: "Puma Energy", href: "/#precios" },
+                { label: "YPF", href: "/ypf" },
+                { label: "Shell", href: "/shell" },
+                { label: "Axion Energy", href: "/axion" },
+                { label: "Puma Energy", href: "/puma" },
                 { label: "DAPSA / Gulf", href: "/#mapa" },
               ].map((c) => (
                 <Link

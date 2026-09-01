@@ -40,6 +40,21 @@ export interface StationDto {
   distanceKm?: number;
 }
 
+export interface SeoLandingResponse {
+  filters: {
+    brand: { slug: string; name: string } | null;
+    fuel: { slug: string; name: string } | null;
+    province: { slug: string; name: string } | null;
+    city: { slug: string; name: string } | null;
+  };
+  fuel: { slug: string; name: string };
+  stats: { average: number; minimum: number; maximum: number; stations: number; lastUpdated: string };
+  cheapestStations: { id: string; name: string; brand: string; brandName: string; address: string; city: string; province: string; price: number }[];
+  brandAverages: { id: string; name: string; average: number; stations: number }[];
+}
+
+export interface SeoLocationDto { province: { name: string; slug: string }; cities: { name: string; slug: string }[]; }
+
 export interface UserLocation { lat: number; lng: number; }
 export interface FuelQualityPollResponse { totalVotes: number; options: { brand: string; name: string; votes: number; percentage: number }[]; }
 export interface AdDto { id: string; name: string; imageUrl: string | null; destinationUrl: string; placement: string; campaign: { name: string; advertiser: { name: string } }; }
@@ -58,6 +73,20 @@ export interface CommunityReportDto {
 }
 
 export const api = {
+  async getSeoLanding(filters: { brand?: string; fuel?: string; province?: string; city?: string }): Promise<SeoLandingResponse | null> {
+    try {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+      const res = await fetch(`${API_BASE}/seo/landing?${params.toString()}`, { next: { revalidate: 3600 } });
+      return res.ok ? await res.json() : null;
+    } catch { return null; }
+  },
+  async getSeoLocations(): Promise<SeoLocationDto[]> {
+    try {
+      const res = await fetch(`${API_BASE}/seo/locations`, { next: { revalidate: 86400 } });
+      return res.ok ? await res.json() : [];
+    } catch { return []; }
+  },
   async getFuelQualityPoll(): Promise<FuelQualityPollResponse | null> {
     try { const res = await fetch(`${API_BASE}/polls/fuel-quality`, { cache: "no-store", credentials: "same-origin" }); return res.ok ? res.json() : null; } catch { return null; }
   },

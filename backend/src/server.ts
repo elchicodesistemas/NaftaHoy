@@ -9,6 +9,7 @@ import syncRouter from "./routes/sync";
 import importsRouter from "./routes/imports";
 import pollsRouter from "./routes/polls";
 import adsRouter from "./routes/ads";
+import seoRouter from "./routes/seo";
 import { initCronWorker } from "./workers/cronWorker";
 
 const app = express();
@@ -45,6 +46,7 @@ app.use("/api/sync", syncRouter);
 app.use("/api/admin/imports", importsRouter);
 app.use("/api/polls", pollsRouter);
 app.use("/api/ads", adsRouter);
+app.use("/api/seo", seoRouter);
 
 // Health check
 app.get("/api/health", async (_req: Request, res: Response) => {

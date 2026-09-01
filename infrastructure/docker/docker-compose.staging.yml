@@ -57,6 +57,7 @@ services:
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: https://naftahoy.com/staging/api
+      NAFTAHOY_INTERNAL_API_URL: http://backend:3001/api
       NEXT_PUBLIC_BASE_PATH: /staging
       NEXT_PUBLIC_ASSET_PREFIX: /staging
       NEXT_PUBLIC_CARTO_BASEMAP_KEY: ${STAGING_CARTO_BASEMAP_KEY:?Definí STAGING_CARTO_BASEMAP_KEY en .env.staging}

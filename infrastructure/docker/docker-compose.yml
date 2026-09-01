@@ -54,6 +54,7 @@ services:
     restart: always
     environment:
       - NEXT_PUBLIC_API_URL=https://naftahoy.com/api
+      - NAFTAHOY_INTERNAL_API_URL=http://backend:3001/api
       - NEXT_PUBLIC_CARTO_BASEMAP_KEY=${CARTO_BASEMAP_KEY:?Definí CARTO_BASEMAP_KEY en infrastructure/docker/.env}
       - PORT=3000
     ports:

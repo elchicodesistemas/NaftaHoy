@@ -1,6 +1,10 @@
 import { Company } from "@/data/mockPrices";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+// En el servidor de Next usamos la red privada de Docker; en el navegador se
+// mantiene la URL pública para que las llamadas respeten el proxy y basePath.
+const API_BASE = typeof window === "undefined"
+  ? process.env.NAFTAHOY_INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export interface PriceSummaryResponse {
   companies: Company[];

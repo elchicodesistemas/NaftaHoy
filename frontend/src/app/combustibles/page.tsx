@@ -1,0 +1,2 @@
+import DirectoryPage from "@/components/DirectoryPage";
+export default function Page() { return <DirectoryPage title="Precios de combustibles" description="Consultá precios oficiales por tipo de combustible y encontrá las estaciones más convenientes." items={[{label:"Nafta Súper",href:"/precio-nafta-super"},{label:"Nafta Premium",href:"/precio-nafta-premium"},{label:"Gasoil",href:"/precio-gasoil"},{label:"GNC",href:"/precio-gnc"}]} />; }

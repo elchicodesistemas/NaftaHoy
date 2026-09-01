@@ -8,6 +8,8 @@ const fuelLinks = [
   { slug: "nafta-super", label: "Nafta Súper" }, { slug: "nafta-premium", label: "Nafta Premium" },
   { slug: "gasoil", label: "Gasoil" }, { slug: "gnc", label: "GNC" },
 ];
+const cabaNeighborhoods = ["Palermo", "Retiro", "San Telmo", "Recoleta", "Belgrano", "Caballito", "Puerto Madero", "Villa Crespo", "Almagro", "Barracas", "Flores", "Colegiales"];
+const slugify = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 function locationLabel(data: SeoLandingResponse) {
   return [data.filters.city?.name, data.filters.province?.name].filter(Boolean).join(", ");
@@ -82,6 +84,14 @@ export default function SeoPriceLanding({ data }: { data: SeoLandingResponse }) 
             {data.relatedLocations.map((location) => <Link key={location.slug} href={`/${data.filters.province!.slug}/${location.slug}`} className="rounded-xl border border-surface-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-brand-primary hover:text-brand-dark dark:border-dark-border dark:bg-dark-card dark:text-zinc-200">{location.name}<ArrowRight className="float-right h-4 w-4" /></Link>)}
           </div>
         </section>
+      )}
+
+      {data.filters.province?.slug === "buenos-aires" && !data.filters.city && (
+        <section className="mt-10"><h2 className="text-xl font-bold text-zinc-900 dark:text-white">Buenos Aires por zona</h2><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{[["interior","Interior de Buenos Aires"],["zona-norte","Zona Norte"],["zona-sur","Zona Sur"],["zona-oeste","Zona Oeste"]].map(([slug, label]) => <Link key={slug} href={`/buenos-aires/${slug}`} className="rounded-xl bg-brand-primary/10 px-4 py-4 text-sm font-bold text-brand-dark hover:bg-brand-primary/20">{label}<ArrowRight className="float-right h-4 w-4" /></Link>)}</div></section>
+      )}
+
+      {data.filters.province?.slug === "capital-federal" && !data.filters.city && (
+        <section className="mt-10"><h2 className="text-xl font-bold text-zinc-900 dark:text-white">Precios por barrio en Capital Federal</h2><p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Explorá las principales zonas de la Ciudad de Buenos Aires.</p><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{cabaNeighborhoods.map((neighborhood) => <Link key={neighborhood} href={`/capital-federal/${slugify(neighborhood)}`} className="rounded-xl border border-surface-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 hover:border-brand-primary hover:text-brand-dark dark:border-dark-border dark:bg-dark-card dark:text-zinc-200">{neighborhood}<ArrowRight className="float-right h-4 w-4" /></Link>)}</div></section>
       )}
 
       {data.filters.city && (

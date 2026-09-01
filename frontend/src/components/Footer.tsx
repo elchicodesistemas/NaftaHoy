@@ -27,9 +27,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
-              Combustibles
-            </h4>
+            <Link href="/combustibles" className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-brand-dark">Combustibles</Link>
             <div className="space-y-1.5">
               {[
                 { label: "Nafta Súper", href: "/precio-nafta-super" },
@@ -49,9 +47,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
-              Petroleras
-            </h4>
+            <Link href="/petroleras" className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-brand-dark">Petroleras</Link>
             <div className="space-y-1.5">
               {[
                 { label: "YPF", href: "/ypf" },
@@ -72,9 +68,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
-              Provincias
-            </h4>
+            <Link href="/provincias" className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-brand-dark">Provincias</Link>
             <div className="space-y-1.5">
               {[
                 { label: "Buenos Aires", href: "/buenos-aires" },

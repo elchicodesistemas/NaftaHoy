@@ -1,0 +1,4 @@
+import { notFound } from "next/navigation";
+import DirectoryPage from "@/components/DirectoryPage";
+const neighborhoods: Record<string, string> = { palermo:"Palermo", retiro:"Retiro", "san-telmo":"San Telmo", recoleta:"Recoleta", belgrano:"Belgrano", caballito:"Caballito", "puerto-madero":"Puerto Madero", "villa-crespo":"Villa Crespo", almagro:"Almagro", barracas:"Barracas", flores:"Flores", colegiales:"Colegiales" };
+export default function Page({ params }: { params: { neighborhood: string } }) { const neighborhood = neighborhoods[params.neighborhood]; if (!neighborhood) notFound(); return <DirectoryPage title={`Precios de combustibles en ${neighborhood}`} description={`Consultá precios de combustibles y estaciones de servicio en ${neighborhood}, Capital Federal.`} items={[{label:"Ver precio de nafta súper",href:"/precio-nafta-super"},{label:"Ver estaciones en el mapa",href:"/#mapa"},{label:"Volver a Capital Federal",href:"/capital-federal"}]} />; }

@@ -13,7 +13,7 @@ export default function Footer() {
   return (
     <footer className="bg-white dark:bg-dark-surface border-t border-surface-200 dark:border-dark-border mt-10 transition-colors">
       <div className="max-w-content mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Fuel className="w-4 h-4 text-brand-primary" />
@@ -66,6 +66,32 @@ export default function Footer() {
                   className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                 >
                   {c.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+              Provincias
+            </h4>
+            <div className="space-y-1.5">
+              {[
+                { label: "Buenos Aires", href: "/buenos-aires" },
+                { label: "Capital Federal", href: "/capital-federal" },
+                { label: "Córdoba", href: "/cordoba" },
+                { label: "Mendoza", href: "/mendoza" },
+                { label: "Santa Fe", href: "/santa-fe" },
+                { label: "Tucumán", href: "/tucuman" },
+                { label: "Entre Ríos", href: "/entre-rios" },
+                { label: "Neuquén", href: "/neuquen" },
+              ].map((province) => (
+                <Link
+                  key={province.label}
+                  href={province.href}
+                  className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                >
+                  {province.label}
                 </Link>
               ))}
             </div>

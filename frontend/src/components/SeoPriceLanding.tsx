@@ -23,14 +23,19 @@ export default function SeoPriceLanding({ data }: { data: SeoLandingResponse }) 
   const locationHref = data.filters.province
     ? `/${data.filters.province.slug}${data.filters.city ? `/${data.filters.city.slug}` : ""}`
     : "/";
+  const breadcrumbs = data.filters.province
+    ? [{ label: "Provincias", href: "/provincias" }, ...(data.filters.city ? [{ label: data.filters.province.name, href: `/${data.filters.province.slug}` }, ...(data.filters.fuel ? [{ label: data.filters.city.name, href: locationHref }] : [])] : [])]
+    : data.filters.brand
+      ? [{ label: "Petroleras", href: "/petroleras" }, ...(data.filters.fuel ? [{ label: data.filters.brand.name, href: `/${data.filters.brand.slug}` }] : [])]
+      : [{ label: "Precios de combustibles", href: "/combustibles" }];
+  const currentCrumb = data.filters.fuel?.name || data.filters.city?.name || data.filters.province?.name || data.filters.brand?.name || "Precios";
 
   return (
     <main className="max-w-content mx-auto px-4 py-8 md:py-12">
       <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400" aria-label="Navegación de contexto">
         <Link href="/" className="hover:text-brand-dark">Inicio</Link><span>/</span>
-        {data.filters.province && <><Link href={`/${data.filters.province.slug}`} className="hover:text-brand-dark">{data.filters.province.name}</Link><span>/</span></>}
-        {data.filters.city && <><Link href={locationHref} className="hover:text-brand-dark">{data.filters.city.name}</Link><span>/</span></>}
-        <span className="text-zinc-700 dark:text-zinc-200">{data.filters.fuel?.name || "Precios"}</span>
+        {breadcrumbs.map((crumb, index) => <span key={`${crumb.label}-${index}`} className="flex items-center gap-2"><span>/</span><Link href={crumb.href} className="hover:text-brand-dark">{crumb.label}</Link></span>)}
+        <span>/</span><span className="text-zinc-700 dark:text-zinc-200">{currentCrumb}</span>
       </nav>
 
       <section className="rounded-3xl border border-surface-200 bg-gradient-to-br from-white to-amber-50/70 p-6 shadow-sm dark:border-dark-border dark:from-dark-card dark:to-dark-surface md:p-9">

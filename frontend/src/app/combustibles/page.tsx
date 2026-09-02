@@ -1,2 +1,4 @@
+import type { Metadata } from "next";
 import DirectoryPage from "@/components/DirectoryPage";
+export const metadata: Metadata = { title: "Precio de combustibles hoy", description: "Consultá el precio de nafta súper, nafta premium, gasoil y GNC hoy. Compará estaciones de servicio y encontrá la opción más conveniente.", keywords: ["precio nafta hoy", "precio nafta súper hoy", "precio nafta premium", "precio gasoil hoy", "precio GNC hoy"] };
 export default function Page() { return <DirectoryPage title="Precios de combustibles" description="Consultá precios oficiales por tipo de combustible y encontrá las estaciones más convenientes." items={[{label:"Nafta Súper",href:"/precio-nafta-super"},{label:"Nafta Premium",href:"/precio-nafta-premium"},{label:"Gasoil",href:"/precio-gasoil"},{label:"GNC",href:"/precio-gnc"}]} />; }

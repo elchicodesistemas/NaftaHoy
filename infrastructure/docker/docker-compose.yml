@@ -31,6 +31,13 @@ services:
       - VOTE_TOKEN_SECRET=${VOTE_TOKEN_SECRET:?Definí VOTE_TOKEN_SECRET en infrastructure/docker/.env}
       - VOTE_COOKIE_NAME=naftahoy_vote
       - VOTE_COOKIE_PATH=/
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - ADVERTISING_RECIPIENT=${ADVERTISING_RECIPIENT:-publicidad@naftahoy.com}
     ports:
       - "127.0.0.1:3001:3001"
     healthcheck:

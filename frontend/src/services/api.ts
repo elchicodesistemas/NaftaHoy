@@ -77,7 +77,32 @@ export interface CommunityReportDto {
   createdAt: string;
 }
 
+export type AdvertisingLeadInput = {
+  name: string;
+  business: string;
+  email: string;
+  phone: string;
+  category: string;
+  location: string;
+  message: string;
+  website?: string;
+};
+
 export const api = {
+  async submitAdvertisingLead(lead: AdvertisingLeadInput): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/advertising/leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lead),
+      });
+      if (res.ok) return { ok: true };
+      const body = await res.json().catch(() => ({}));
+      return { ok: false, error: body.error || "No pudimos enviar tu consulta. Intentá nuevamente." };
+    } catch {
+      return { ok: false, error: "No pudimos enviar tu consulta. Revisá tu conexión e intentá nuevamente." };
+    }
+  },
   async getSeoLanding(filters: { brand?: string; fuel?: string; province?: string; city?: string }): Promise<SeoLandingResponse | null> {
     try {
       const params = new URLSearchParams();

@@ -4,6 +4,7 @@ import { config } from "../config";
 
 const reportAttempts = new Map<string, { count: number; expiresAt: number }>();
 const voteAttempts = new Map<string, { count: number; expiresAt: number }>();
+const advertisingAttempts = new Map<string, { count: number; expiresAt: number }>();
 const VOTE_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 
 export function clientHash(req: Request) {
@@ -102,5 +103,16 @@ export function voteRateLimit(req: Request, res: Response, next: NextFunction) {
   if (item.count >= config.voteRateLimitPerHour) return res.status(429).json({ error: "Demasiados intentos de voto. Intentá nuevamente más tarde." });
   item.count += 1;
   voteAttempts.set(key, item);
+  next();
+}
+
+export function advertisingRateLimit(req: Request, res: Response, next: NextFunction) {
+  const key = clientHash(req);
+  const now = Date.now();
+  const current = advertisingAttempts.get(key);
+  const item = !current || current.expiresAt <= now ? { count: 0, expiresAt: now + 60 * 60 * 1000 } : current;
+  if (item.count >= config.advertisingRateLimitPerHour) return res.status(429).json({ error: "Recibimos varias consultas desde esta conexión. Intentá nuevamente más tarde." });
+  item.count += 1;
+  advertisingAttempts.set(key, item);
   next();
 }

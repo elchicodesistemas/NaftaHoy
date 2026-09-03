@@ -32,6 +32,13 @@ services:
       VOTE_COOKIE_NAME: naftahoy_staging_vote
       VOTE_COOKIE_PATH: /staging
       CRON_SYNC_SCHEDULE: ""
+      SMTP_HOST: ${STAGING_SMTP_HOST:-}
+      SMTP_PORT: ${STAGING_SMTP_PORT:-587}
+      SMTP_SECURE: ${STAGING_SMTP_SECURE:-false}
+      SMTP_USER: ${STAGING_SMTP_USER:-}
+      SMTP_PASSWORD: ${STAGING_SMTP_PASSWORD:-}
+      SMTP_FROM: ${STAGING_SMTP_FROM:-}
+      ADVERTISING_RECIPIENT: ${STAGING_ADVERTISING_RECIPIENT:-publicidad@naftahoy.com}
     ports:
       - "127.0.0.1:3003:3001"
     healthcheck:

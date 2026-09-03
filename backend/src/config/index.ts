@@ -17,4 +17,12 @@ export const config = {
   res1104TableName: process.env.RES1104_TABLE_NAME || "public_vi_access_eess_2025_en_adelante",
   cronSchedule: process.env.CRON_SYNC_SCHEDULE || "",
   manualImportMaxBytes: parseInt(process.env.MANUAL_IMPORT_MAX_BYTES || "2147483648", 10),
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: parseInt(process.env.SMTP_PORT || "587", 10),
+  smtpSecure: process.env.SMTP_SECURE === "true",
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPassword: process.env.SMTP_PASSWORD || "",
+  smtpFrom: process.env.SMTP_FROM || "",
+  advertisingRecipient: process.env.ADVERTISING_RECIPIENT || "publicidad@naftahoy.com",
+  advertisingRateLimitPerHour: parseInt(process.env.ADVERTISING_RATE_LIMIT_PER_HOUR || "3", 10),
 };

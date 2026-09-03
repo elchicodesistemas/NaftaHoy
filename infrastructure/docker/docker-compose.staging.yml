@@ -33,10 +33,10 @@ services:
       VOTE_COOKIE_PATH: /staging
       CRON_SYNC_SCHEDULE: ""
       GEOCODING_ENABLED: "true"
-      GEOCODING_URL: https://nominatim.openstreetmap.org/search
-      GEOCODING_USER_AGENT: NaftaHoy-Staging/1.0 (https://naftahoy.com/staging/)
+      GEOCODING_PROVIDER: geoapify
+      GEOCODING_API_KEY: ${STAGING_GEOCODING_API_KEY:-}
       GEOCODING_BATCH_SIZE: "600"
-      GEOCODING_DELAY_MS: "1100"
+      GEOCODING_DELAY_MS: "250"
       SMTP_HOST: ${STAGING_SMTP_HOST:-}
       SMTP_PORT: ${STAGING_SMTP_PORT:-587}
       SMTP_SECURE: ${STAGING_SMTP_SECURE:-false}

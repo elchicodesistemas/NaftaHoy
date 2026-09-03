@@ -18,7 +18,7 @@ La Resolución 717/2025 derogó la Resolución 314/2016, por lo que la aplicaci�
 ZIP oficial → extracción del ACCDB → mdb-export por streaming → normalización → PostgreSQL
 ```
 
-El importador conserva las coordenadas existentes de las estaciones identificadas por `Nro Inscripción`, ya que el archivo RES 1104/2004 no provee latitud ni longitud. Cuando `GEOCODING_ENABLED=true`, completa de forma secuencial las estaciones que siguen sin coordenadas mediante Nominatim/OpenStreetMap, restringe los resultados a Argentina, prioriza puntos clasificados como estaciones de servicio y nunca sobrescribe coordenadas existentes. La función permanece desactivada por defecto y se habilita explícitamente en staging.
+El importador conserva las coordenadas existentes de las estaciones identificadas por `Nro Inscripción`, ya que el archivo RES 1104/2004 no provee latitud ni longitud. Cuando `GEOCODING_ENABLED=true`, completa de forma controlada las estaciones que siguen sin coordenadas mediante un proveedor apto para procesamiento por lote (Geoapify en staging), restringe los resultados a Argentina, prioriza puntos clasificados como estaciones de servicio y nunca sobrescribe coordenadas existentes. La función permanece desactivada por defecto y se habilita explícitamente en staging.
 
 El backfill también puede iniciarse, con token administrativo, mediante `POST /api/admin/geocoding/run`; su avance se consulta en `GET /api/admin/geocoding/status`. Las consultas son secuenciales, respetan una pausa mínima de un segundo y las coordenadas resueltas quedan almacenadas para no repetirlas.
 

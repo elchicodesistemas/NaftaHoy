@@ -11,6 +11,7 @@ import pollsRouter from "./routes/polls";
 import adsRouter from "./routes/ads";
 import seoRouter from "./routes/seo";
 import advertisingRouter from "./routes/advertising";
+import geocodingRouter from "./routes/geocoding";
 import { initCronWorker } from "./workers/cronWorker";
 
 const app = express();
@@ -49,6 +50,7 @@ app.use("/api/polls", pollsRouter);
 app.use("/api/ads", adsRouter);
 app.use("/api/seo", seoRouter);
 app.use("/api/advertising", advertisingRouter);
+app.use("/api/admin/geocoding", geocodingRouter);
 
 // Health check
 app.get("/api/health", async (_req: Request, res: Response) => {

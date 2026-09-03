@@ -8,6 +8,7 @@ import { basename, join } from "path";
 import { pipeline } from "stream/promises";
 import { prisma } from "../config/prisma";
 import { config } from "../config";
+import { geocodingService } from "./geocodingService";
 
 type Res1104Record = Record<string, string | undefined>;
 
@@ -96,6 +97,12 @@ export class GovIngestionService {
       console.log(`[Ingestion] Leídas ${records} filas mensuales. ${stations.size} estaciones y ${prices.size} precios válidos detectados.`);
 
       await this.saveToDatabase(stations, prices);
+      try {
+        const geocoding = await geocodingService.geocodeMissingStations();
+        if (geocoding.attempted) console.log(`[Geocoding] Intentadas ${geocoding.attempted}; resueltas ${geocoding.geocoded}; sin resultado ${geocoding.unresolved}; errores ${geocoding.failed}.`);
+      } catch (error: any) {
+        console.warn(`[Geocoding] La ingesta finalizó, pero el enriquecimiento geográfico no pudo ejecutarse: ${error.message || error}`);
+      }
       await prisma.syncLog.update({ where: { id: syncLog.id }, data: { status: "SUCCESS", recordsProcessed: records, stationsCount: stations.size, completedAt: new Date() } });
       this.lastSyncTime = new Date();
       return { success: true, records, stations: stations.size };

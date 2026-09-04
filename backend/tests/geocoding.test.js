@@ -22,7 +22,7 @@ test("rechaza resultados extranjeros, inválidos o fuera de Argentina", () => {
 test("acepta coordenadas de Geoapify dentro de Argentina", () => {
   const service = new GeocodingService();
   const result = service.pickGeoapifyCandidate([
-    { properties: { lat: -34.6037, lon: -58.3816, country_code: "ar", categories: ["service.vehicle.fuel"] } },
+    { lat: -34.6037, lon: -58.3816, country_code: "ar", categories: ["service.vehicle.fuel"] },
   ]);
   assert.deepEqual(result, { lat: -34.6037, lng: -58.3816 });
 });

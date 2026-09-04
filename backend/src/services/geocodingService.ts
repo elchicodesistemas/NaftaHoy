@@ -12,12 +12,10 @@ interface GeocodingCandidate {
 }
 
 interface GeoapifyCandidate {
-  properties?: {
-    lat?: number;
-    lon?: number;
-    country_code?: string;
-    categories?: string[];
-  };
+  lat?: number;
+  lon?: number;
+  country_code?: string;
+  categories?: string[];
 }
 
 export interface GeocodingSummary {
@@ -133,13 +131,13 @@ export class GeocodingService {
 
   public pickGeoapifyCandidate(candidates: GeoapifyCandidate[]) {
     const valid = candidates.flatMap((candidate) => {
-      const lat = Number(candidate.properties?.lat);
-      const lng = Number(candidate.properties?.lon);
-      const inArgentina = candidate.properties?.country_code?.toLowerCase() === "ar";
+      const lat = Number(candidate.lat);
+      const lng = Number(candidate.lon);
+      const inArgentina = candidate.country_code?.toLowerCase() === "ar";
       const withinBounds = lat >= -56 && lat <= -21 && lng >= -74 && lng <= -53;
       return Number.isFinite(lat) && Number.isFinite(lng) && inArgentina && withinBounds ? [{ candidate, lat, lng }] : [];
     });
-    const fuel = valid.find(({ candidate }) => candidate.properties?.categories?.includes("service.vehicle.fuel"));
+    const fuel = valid.find(({ candidate }) => candidate.categories?.includes("service.vehicle.fuel"));
     const selected = fuel || valid[0];
     return selected ? { lat: selected.lat, lng: selected.lng } : null;
   }

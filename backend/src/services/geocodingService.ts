@@ -104,11 +104,12 @@ export class GeocodingService {
   private async lookupGeoapify(primaryQuery: string, fallbackQuery: string) {
     if (!config.geocodingApiKey) throw new Error("GEOCODING_API_KEY no está configurada para Geoapify");
     for (const text of [primaryQuery, fallbackQuery]) {
-      const response = await axios.get<{ features?: GeoapifyCandidate[] }>("https://api.geoapify.com/v1/geocode/search", {
+      const response = await axios.get<{ results?: GeoapifyCandidate[] }>("https://api.geoapify.com/v1/geocode/search", {
         timeout: 20_000,
         params: { text, format: "json", filter: "countrycode:ar", apiKey: config.geocodingApiKey },
       });
-      const candidate = this.pickGeoapifyCandidate(response.data.features || []);
+      // format=json de Geoapify devuelve la colección bajo `results`.
+      const candidate = this.pickGeoapifyCandidate(response.data.results || []);
       if (candidate) return candidate;
       await this.wait(config.geocodingDelayMs);
     }

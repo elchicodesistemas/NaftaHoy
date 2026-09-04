@@ -177,11 +177,6 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
               </div>
             </div>
 
-            {/* Encuesta comunitaria: después de la consulta principal de precios */}
-            <div className="mb-6">
-              <FuelQualityPoll />
-            </div>
-
             {/* Banner horizontal medio */}
             <div className="mb-6">
               <AdSlot placement="home-middle" />
@@ -214,6 +209,11 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
             {/* Banner horizontal */}
             <div className="mb-6">
               <AdSlot placement="home-middle" />
+            </div>
+
+            {/* Encuesta comunitaria al final, después del mapa y sus contenidos */}
+            <div className="mb-6">
+              <FuelQualityPoll />
             </div>
 
           </main>

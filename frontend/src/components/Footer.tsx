@@ -11,23 +11,23 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-white dark:bg-dark-surface border-t border-surface-200 dark:border-dark-border mt-10 transition-colors">
+    <footer className="bg-panel dark:bg-panel-dark border-t border-line dark:border-line-dark mt-10 transition-colors">
       <div className="max-w-content mx-auto px-4 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Fuel className="w-4 h-4 text-brand-primary" />
-              <span className="text-sm font-extrabold text-zinc-700 dark:text-zinc-200">
-                Nafta<span className="text-brand-primary">Hoy</span>
+              <Fuel className="w-4 h-4 text-accent-ink dark:text-accent" />
+              <span className="text-sm font-extrabold text-ink-1 dark:text-ink-dark-1">
+                Nafta<span className="text-accent-ink dark:text-accent">Hoy</span>
               </span>
             </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 leading-relaxed">
+            <p className="text-xs text-ink-4 dark:text-ink-dark-4 leading-relaxed">
               Portal de precios de combustibles en Argentina. Información pública oficial provista por la Secretaría de Energía bajo la Resolución 1104/2004.
             </p>
           </div>
 
           <div>
-            <Link href="/combustibles" className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-brand-dark">Combustibles</Link>
+            <Link href="/combustibles" className="block text-[11px] font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider mb-2 hover:text-accent-ink dark:hover:text-accent">Combustibles</Link>
             <div className="space-y-1.5">
               {[
                 { label: "Nafta Súper", href: "/precio-nafta-super" },
@@ -38,7 +38,7 @@ export default function Footer() {
                 <Link
                   key={f.label}
                   href={f.href}
-                  className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                  className="block text-xs text-ink-4 hover:text-ink-1 dark:hover:text-ink-dark-1 transition-colors"
                 >
                   {f.label}
                 </Link>
@@ -47,7 +47,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <Link href="/petroleras" className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-brand-dark">Petroleras</Link>
+            <Link href="/petroleras" className="block text-[11px] font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider mb-2 hover:text-accent-ink dark:hover:text-accent">Petroleras</Link>
             <div className="space-y-1.5">
               {[
                 { label: "YPF", href: "/ypf" },
@@ -59,7 +59,7 @@ export default function Footer() {
                 <Link
                   key={c.label}
                   href={c.href}
-                  className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                  className="block text-xs text-ink-4 hover:text-ink-1 dark:hover:text-ink-dark-1 transition-colors"
                 >
                   {c.label}
                 </Link>
@@ -68,7 +68,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <Link href="/provincias" className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-brand-dark">Provincias</Link>
+            <Link href="/provincias" className="block text-[11px] font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider mb-2 hover:text-accent-ink dark:hover:text-accent">Provincias</Link>
             <div className="space-y-1.5">
               {[
                 { label: "Buenos Aires", href: "/buenos-aires" },
@@ -83,7 +83,7 @@ export default function Footer() {
                 <Link
                   key={province.label}
                   href={province.href}
-                  className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                  className="block text-xs text-ink-4 hover:text-ink-1 dark:hover:text-ink-dark-1 transition-colors"
                 >
                   {province.label}
                 </Link>
@@ -92,7 +92,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+            <h4 className="text-[11px] font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider mb-2">
               Herramientas y Secciones
             </h4>
             <div className="space-y-1.5">
@@ -107,7 +107,7 @@ export default function Footer() {
                 <Link
                   key={t.label}
                   href={t.href}
-                  className="block text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                  className="block text-xs text-ink-4 hover:text-ink-1 dark:hover:text-ink-dark-1 transition-colors"
                 >
                   {t.label}
                 </Link>
@@ -116,28 +116,28 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-surface-100 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
+        <div className="mt-6 pt-4 border-t border-line2 dark:border-line-dark flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span className="text-[11px] text-ink-4 dark:text-ink-dark-4">
             © 2026 NaftaHoy.com — Todos los derechos reservados.
           </span>
-          <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
+          <span className="text-[11px] text-ink-4 dark:text-ink-dark-4">
             Los precios son informativos y corresponden a declaraciones oficiales en surtidor.
           </span>
-          <Link href="/privacidad" className="text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">Privacidad</Link>
+          <Link href="/privacidad" className="text-[11px] text-ink-4 hover:text-ink-1 dark:hover:text-ink-dark-1">Privacidad</Link>
         </div>
 
         <a
           href="https://elchicodesistemas.com.ar/"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 flex w-fit mx-auto items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-surface-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-dark-card dark:hover:text-zinc-100"
+          className="mt-5 flex w-fit mx-auto items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-ink-3 transition-colors hover:bg-panel2 hover:text-ink-1 dark:text-ink-dark-3 dark:hover:bg-panel2-dark dark:hover:text-ink-dark-1"
           aria-label="Desarrollado por El Chico de Sistemas — abrir sitio web"
         >
           <span>Desarrollado por</span>
-          <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-surface-200 dark:ring-dark-border">
+          <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-panel ring-1 ring-line dark:ring-line-dark">
             <Image src={`${basePath}/el-chico-de-sistemas.png`} alt="Logo de El Chico de Sistemas" width={28} height={28} unoptimized className="h-full w-full object-cover" />
           </span>
-          <span className="font-semibold text-zinc-700 dark:text-zinc-200">El Chico de Sistemas</span>
+          <span className="font-semibold text-ink-1 dark:text-ink-dark-1">El Chico de Sistemas</span>
         </a>
       </div>
     </footer>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
+import Ticker from "@/components/Ticker";
+import Hero from "@/components/Hero";
 import PriceTable from "@/components/PriceTable";
 import QuickCompare from "@/components/QuickCompare";
 import MiniTrend from "@/components/MiniTrend";
@@ -94,6 +96,8 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
   return (
     <>
       <Navbar selectedProvince={province} onSelectProvince={handleProvinceChange} />
+      <Ticker companies={data.companies} />
+      <Hero companies={data.companies} stats={data.stats} province={province} />
 
       {/* Banner horizontal top */}
       <div className="max-w-content mx-auto px-4 mt-3">
@@ -114,8 +118,8 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
             <div className="mb-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-800 dark:text-zinc-100 tracking-tight">
-                    Precio de la nafta <span className="text-brand-primary">hoy</span>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-ink-1 dark:text-ink-dark-1 tracking-tight">
+                    Precio de la nafta <span className="text-accent-ink dark:text-accent">hoy</span>
                   </h1>
                   {data.isRealData && data.dataSource === "RES_1104_2004" && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-400 px-2.5 py-0.5 rounded-full shadow-xs">
@@ -125,12 +129,12 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
                   )}
                 </div>
 
-                <div className="text-xs font-medium text-zinc-400">
+                <div className="text-xs font-medium text-ink-4">
                   {loading ? "Actualizando…" : userLocation ? "Cerca de tu ubicación · 15 km" : province ? `Zona: ${province}` : "Nivel Nacional"}
                 </div>
               </div>
 
-              <p className="text-sm text-zinc-400 dark:text-zinc-500 capitalize mt-1">
+              <p className="text-sm text-ink-4 dark:text-ink-dark-4 capitalize mt-1">
                 {todayLabel} — Precios en surtidor según la última actualización disponible
               </p>
             </div>
@@ -149,8 +153,8 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
                     onClick={() => setSelectedFuelTab(tab.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
                       selectedFuelTab === tab.id
-                        ? "bg-brand-primary text-white shadow-sm"
-                        : "bg-white dark:bg-dark-card border border-surface-200 dark:border-dark-border text-zinc-600 dark:text-zinc-400 hover:bg-surface-100"
+                        ? "bg-accent text-white shadow-sm"
+                        : "bg-panel dark:bg-panel2-dark border border-line dark:border-line-dark text-ink-2 dark:text-ink-dark-3 hover:bg-panel2"
                     }`}
                   >
                     {tab.label}
@@ -162,10 +166,10 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
             {/* Precios por petrolera */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                <h2 className="text-sm font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider">
                   Precios por petrolera
                 </h2>
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-ink-4">
                   {data.dataSource === "RES_1104_2004" ? "Resolución 1104/2004 · actualización mensual" : data.dataSource === "LEGACY_RES_314_2016" ? "Datos heredados · pendiente de carga mensual oficial" : "Modo vista previa"}
                 </span>
               </div>
@@ -173,7 +177,7 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
                 {displayCompanies.map((company) => (
                   <PriceTable key={company.id} company={company} />
                 ))}
-                {displayCompanies.length === 0 && <p className="text-sm text-zinc-500">No hay precios oficiales disponibles todavía para esta zona.</p>}
+                {displayCompanies.length === 0 && <p className="text-sm text-ink-3">No hay precios oficiales disponibles todavía para esta zona.</p>}
               </div>
             </div>
 
@@ -184,7 +188,7 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
 
             {/* Comparativa + Tendencia */}
             <div className="mb-6">
-              <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
+              <h2 className="text-sm font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider mb-3">
                 Análisis y Tendencia
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -200,7 +204,7 @@ export default function HomeClient({ initialData, todayLabel }: { initialData: P
 
             {/* Mapa de estaciones */}
             <div className="mb-6">
-              <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
+              <h2 className="text-sm font-semibold text-ink-3 dark:text-ink-dark-3 uppercase tracking-wider mb-3">
                 Mapa y Localizador de Estaciones
               </h2>
               <StationMap userLocation={userLocation || undefined} onUserLocation={handleUserLocation} />

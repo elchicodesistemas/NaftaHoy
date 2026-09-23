@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <JsonLd />
       </head>
-      <body className="bg-surface-50 text-zinc-800 dark:bg-dark-bg dark:text-zinc-200 font-sans antialiased min-h-screen transition-colors duration-300">
+      <body className="bg-base text-ink-1 dark:bg-base-dark dark:text-ink-dark-1 font-sans antialiased min-h-screen transition-colors duration-300">
         <GoogleAnalytics />
         {children}
       </body>

@@ -1,20 +1,115 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/*
+ * Las fuentes (Anton + Archivo) se sirven self-hosted con @fontsource,
+ * importadas desde layout.tsx.
+ * NO usar @import de Google Fonts acá: eso ya rompió un build una vez
+ * (ver commit b822603 "mover @import CSS").
+ */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
-.dark ::-webkit-scrollbar-thumb { background: #2a2b38; }
+::selection {
+  background: rgba(255, 196, 0, 0.3);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d9d4c4;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #262c33;
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+}
+
+/* Leaflet: el mapa se carga por CDN, así que su tema se ajusta desde acá. */
+.leaflet-container {
+  font-family: Archivo, system-ui, sans-serif;
+  background: #ebe7db;
+}
+.dark .leaflet-container {
+  background: #12161a;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #fffefb;
+  color: #191b1e;
+  box-shadow: 0 12px 32px rgba(98, 82, 24, 0.18);
+}
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  background: #171b20;
+  color: #f2f4f6;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+.leaflet-bar a,
+.leaflet-control-attribution {
+  background: #fffefb;
+  color: #383c42;
+}
+.dark .leaflet-bar a,
+.dark .leaflet-control-attribution {
+  background: #171b20;
+  color: #c3c9d0;
+}
 
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.4s ease-out forwards;
   }
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 28s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-live-blink {
+    animation: liveBlink 1.6s infinite;
+  }
+  @keyframes liveBlink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee,
+    .animate-live-blink,
+    .animate-fade-in {
+      animation: none;
+    }
   }
 }

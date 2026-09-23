@@ -1,4 +1,12 @@
 import type { Metadata } from "next";
+// Fuentes self-hosted. No se usa @import de Google Fonts en globals.css: eso ya
+// rompio un build una vez (commit b822603 "mover @import CSS").
+import "@fontsource/anton";
+import "@fontsource/archivo/400.css";
+import "@fontsource/archivo/500.css";
+import "@fontsource/archivo/600.css";
+import "@fontsource/archivo/700.css";
+import "@fontsource/archivo/800.css";
 import "./globals.css";
 import JsonLd from "@/components/JsonLd";
 import GoogleAnalytics from "@/components/GoogleAnalytics";

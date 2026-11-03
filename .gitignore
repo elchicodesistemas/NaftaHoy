@@ -84,3 +84,6 @@ infrastructure/credenciales*
 # --- OS generated ---
 ehthumbs.db
 ehthumbs_vista.db
+
+# Cache incremental de TypeScript
+*.tsbuildinfo

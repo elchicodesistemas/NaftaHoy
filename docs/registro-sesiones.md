@@ -11,6 +11,17 @@
 
 ---
 
+## 2026-11-02 — Máquina 1 (personal) — PORTADA DEL REDISEÑO
+
+- PR #1 (`integracion/unificacion` → `main`) abierto. A pedido del colaborador, la portada pasa
+  al layout del rediseño con todo lo de `main` adentro.
+- Nuevos `PriceBoard` ("La pizarra"), `TrendSection`/`TrendChart`/`TrendStats`, con datos reales
+  (`data.companies`, `/api/prices/trends`, `stats`). Reemplazan en la portada a `PriceTable` +
+  pestañas, `StatsBar` y `MiniTrend` (los archivos quedan, sin uso en la portada).
+- Se conservan: provincia, geolocalización, AdSlot (top/middle/sidebar), comparador, calculadora,
+  mapa, encuesta, reportes. "Precio de la nafta hoy" queda como antetítulo de la pizarra (SEO).
+- No portado: `NewsGrid` (titulares inventados) ni la tarjeta "Próximo ajuste: Agosto" (sin fuente).
+
 ## 2026-08-28 — Máquina 1 (personal) — UNIFICACIÓN
 
 - **Se descubrió que el proyecto estaba bifurcado en dos backends paralelos.** El 2026-08-27 el

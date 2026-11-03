@@ -1,4 +1,12 @@
 import type { Metadata } from "next";
+// Fuentes self-hosted. No se usa @import de Google Fonts en globals.css: eso ya
+// rompio un build una vez (commit b822603 "mover @import CSS").
+import "@fontsource/anton";
+import "@fontsource/archivo/400.css";
+import "@fontsource/archivo/500.css";
+import "@fontsource/archivo/600.css";
+import "@fontsource/archivo/700.css";
+import "@fontsource/archivo/800.css";
 import "./globals.css";
 import JsonLd from "@/components/JsonLd";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -74,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <JsonLd />
       </head>
-      <body className="bg-surface-50 text-zinc-800 dark:bg-dark-bg dark:text-zinc-200 font-sans antialiased min-h-screen transition-colors duration-300">
+      <body className="bg-base text-ink-1 dark:bg-base-dark dark:text-ink-dark-1 font-sans antialiased min-h-screen transition-colors duration-300">
         <GoogleAnalytics />
         {children}
       </body>

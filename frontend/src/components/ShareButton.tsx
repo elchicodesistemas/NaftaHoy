@@ -32,44 +32,44 @@ export default function ShareButton() {
     <div className="relative inline-block text-left">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-dark-border bg-white dark:bg-dark-card text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-surface-50 dark:hover:bg-dark-surface transition-colors shadow-sm"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line dark:border-line-dark bg-panel dark:bg-panel-dark text-xs font-medium text-ink-1 dark:text-ink-dark-2 hover:bg-panel2 dark:hover:bg-panel2-dark transition-colors shadow-sm"
         aria-label="Compartir precios"
       >
-        <Share2 className="w-3.5 h-3.5 text-brand-primary" />
+        <Share2 className="w-3.5 h-3.5 text-accent-ink dark:text-accent" />
         <span>Compartir</span>
       </button>
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-dark-card border border-surface-200 dark:border-dark-border shadow-xl z-[100] py-1 text-xs divide-y divide-surface-100 dark:divide-dark-border"
+          className="absolute right-0 mt-2 w-48 rounded-2xl bg-panel dark:bg-panel-dark border border-line dark:border-line-dark shadow-xl z-[100] py-1 text-xs divide-y divide-line2 dark:divide-line2-dark"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-1">
             <button
               onClick={handleWhatsApp}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-surface-50 dark:hover:bg-dark-surface transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-ink-1 dark:text-ink-dark-2 hover:bg-panel2 dark:hover:bg-panel2-dark transition-colors text-left"
             >
-              <MessageCircle className="w-4 h-4 text-emerald-500" />
+              <MessageCircle className="w-4 h-4 text-down dark:text-down-dark" />
               <span>WhatsApp</span>
             </button>
             <button
               onClick={handleTwitter}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-surface-50 dark:hover:bg-dark-surface transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-ink-1 dark:text-ink-dark-2 hover:bg-panel2 dark:hover:bg-panel2-dark transition-colors text-left"
             >
-              <Twitter className="w-4 h-4 text-sky-500" />
+              <Twitter className="w-4 h-4 text-brand-gulf" />
               <span>X (Twitter)</span>
             </button>
           </div>
           <div className="p-1">
             <button
               onClick={handleCopy}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-surface-50 dark:hover:bg-dark-surface transition-colors text-left"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-ink-1 dark:text-ink-dark-2 hover:bg-panel2 dark:hover:bg-panel2-dark transition-colors text-left"
             >
               <div className="flex items-center gap-2">
-                <Link2 className="w-4 h-4 text-zinc-400" />
+                <Link2 className="w-4 h-4 text-ink-4" />
                 <span>{copied ? "¡Enlace copiado!" : "Copiar enlace"}</span>
               </div>
-              {copied && <Check className="w-3.5 h-3.5 text-accent-green" />}
+              {copied && <Check className="w-3.5 h-3.5 text-down dark:text-down-dark" />}
             </button>
           </div>
         </div>

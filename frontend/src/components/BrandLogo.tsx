@@ -1,7 +1,9 @@
 "use client";
 
-// Logos SVG simplificados de cada petrolera
-// Inspirados en los logos reales pero minimalistas para evitar problemas de copyright
+import { BRAND_COLORS, brandColor, type BrandId } from "@/lib/brands";
+
+// Logos SVG simplificados de cada petrolera.
+// Inspirados en los reales pero minimalistas, para evitar problemas de copyright.
 
 interface BrandLogoProps {
   brand: string;
@@ -9,20 +11,35 @@ interface BrandLogoProps {
 }
 
 export default function BrandLogo({ brand, size = 28 }: BrandLogoProps) {
-  const logos: Record<string, JSX.Element> = {
+  const common = {
+    "aria-hidden": true as const,
+    width: size,
+    height: size,
+    viewBox: "0 0 32 32",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg",
+  };
+
+  const logos: Partial<Record<BrandId, JSX.Element>> = {
     ypf: (
-      // YPF: Escudo simplificado con las letras
-      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#0B3D91" />
-        <text x="16" y="21" textAnchor="middle" fill="white" fontSize="12" fontWeight="800" fontFamily="Inter, sans-serif">
+      <svg {...common}>
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.ypf} />
+        <text
+          x="16"
+          y="21"
+          textAnchor="middle"
+          fill="white"
+          fontSize="12"
+          fontWeight="800"
+          fontFamily="Archivo, sans-serif"
+        >
           YPF
         </text>
       </svg>
     ),
     shell: (
-      // Shell: Concha simplificada
-      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#FFD500" />
+      <svg {...common}>
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.shell} />
         <path
           d="M16 6 C16 6 8 12 8 19 C8 23 11.5 26 16 26 C20.5 26 24 23 24 19 C24 12 16 6 16 6Z"
           fill="none"
@@ -35,40 +52,49 @@ export default function BrandLogo({ brand, size = 28 }: BrandLogoProps) {
       </svg>
     ),
     axion: (
-      // Axion: Triángulo/flecha estilizada
-      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#6B2D8B" />
+      <svg {...common}>
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.axion} />
         <path
           d="M10 22 L16 8 L22 22 Z"
           fill="none"
-          stroke="white"
+          stroke="#0e1114"
           strokeWidth="2"
           strokeLinejoin="round"
         />
-        <line x1="12" y1="18" x2="20" y2="18" stroke="white" strokeWidth="1.5" />
+        <line x1="12" y1="18" x2="20" y2="18" stroke="#0e1114" strokeWidth="1.5" />
       </svg>
     ),
     puma: (
-      // Puma: Silueta de puma simplificada
-      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#008C45" />
+      <svg {...common}>
+        <rect width="32" height="32" rx="8" fill={BRAND_COLORS.puma} />
         <path
           d="M7 22 C7 22 9 16 12 14 C14 12.5 15 13 16 14 C17 15 18 16 20 15 C22 14 24 11 25 10 L25 14 C25 14 23 18 21 20 C19 22 17 22 15 21 C13 20 12 20 10 22 Z"
-          fill="white"
-          opacity="0.95"
+          fill="#0e1114"
+          opacity="0.9"
         />
       </svg>
     ),
   };
 
-  if (logos[brand]) return logos[brand];
+  const known = logos[brand as BrandId];
+  if (known) return known;
 
-  const initials = brand === "blanca" ? "SB" : brand.slice(0, 2).toUpperCase();
+  // Fallback: inicial de la marca sobre su color. Cubre dapsa, gulf, blancas
+  // y cualquier bandera nueva que aparezca en el dataset oficial.
+  const label = brand === "blanca" ? "SB" : (brand ?? "?").slice(0, 2).toUpperCase();
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label={`Marca ${brand}`}>
-      <rect width="32" height="32" rx="6" fill="#475569" />
-      <text x="16" y="21" textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Inter, sans-serif">
-        {initials}
+    <svg {...common}>
+      <rect width="32" height="32" rx="8" fill={brandColor(brand)} />
+      <text
+        x="16"
+        y="22"
+        textAnchor="middle"
+        fill="#0e1114"
+        fontSize="12"
+        fontWeight="800"
+        fontFamily="Archivo, sans-serif"
+      >
+        {label}
       </text>
     </svg>
   );

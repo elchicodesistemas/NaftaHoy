@@ -4,26 +4,19 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { MapPin, Locate, Minus, Plus, Search, Navigation, ChevronDown, ChevronUp, Fuel, ExternalLink } from "lucide-react";
 import { api, StationDto, UserLocation } from "@/services/api";
 import { trackEvent } from "@/services/analytics";
+import { BRAND_NAMES, brandColor } from "@/lib/brands";
 
 const fallbackStations: StationDto[] = [];
 const cartoBasemapKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY;
 
-const brandColors: Record<string, string> = {
-  ypf: "#0B3D91",
-  shell: "#FFD500",
-  axion: "#6B2D8B",
-  puma: "#008C45",
-  dapsa: "#F97316",
-  gulf: "#3B82F6",
-  blanca: "#71717A",
-};
-
+// Los colores de marca salen de src/lib/brands.ts, no de una copia local:
+// los mismos valores alimentan los tokens brand-* de Tailwind.
 const brands = [
   { id: "all", label: "Todas las marcas", color: "#888" },
-  { id: "ypf", label: "YPF", color: "#0B3D91" },
-  { id: "shell", label: "Shell", color: "#FFD500" },
-  { id: "axion", label: "Axion", color: "#6B2D8B" },
-  { id: "puma", label: "Puma", color: "#008C45" },
+  { id: "ypf", label: BRAND_NAMES.ypf, color: brandColor("ypf") },
+  { id: "shell", label: BRAND_NAMES.shell, color: brandColor("shell") },
+  { id: "axion", label: "Axion", color: brandColor("axion") },
+  { id: "puma", label: "Puma", color: brandColor("puma") },
 ];
 
 const fuelTypeKeys: Record<string, { label: string; key: "super" | "premium" | "diesel" | "gnc" }> = {
@@ -102,7 +95,7 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
 
     stationsToRender.forEach((station) => {
       if (!station.lat || !station.lng) return;
-      const color = brandColors[station.brand] || "#666";
+      const color = brandColor(station.brand);
       const currentPrice = station.prices?.[fuelMeta.key];
       const priceText = currentPrice ? `$${currentPrice.toLocaleString("es-AR")}` : "-";
 
@@ -129,18 +122,18 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
       const mapsLink = `https://www.google.com/maps/dir/?api=1&destination=${station.lat},${station.lng}`;
 
       const popupHtml = `
-        <div style="font-family:Inter,sans-serif;font-size:12px;min-width:200px;padding:4px 0;">
-          <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:2px;">${station.name || station.rawName}</div>
+        <div style="font-family:Archivo,system-ui,sans-serif;font-size:12px;min-width:200px;padding:4px 0;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${station.name || station.rawName}</div>
           <div style="font-size:11px;color:#666;margin-bottom:6px;">${station.address || ""} ${station.city ? `(${station.city})` : ""}</div>
 
-          <div style="background:#f4f4f6;border-radius:8px;padding:6px 8px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">
-            <div><span style="color:#888;">Súper:</span> <strong style="color:#111;">${superP}</strong></div>
-            <div><span style="color:#888;">Premium:</span> <strong style="color:#111;">${premP}</strong></div>
-            <div><span style="color:#888;">Diesel:</span> <strong style="color:#111;">${diesP}</strong></div>
-            <div><span style="color:#888;">GNC:</span> <strong style="color:#111;">${gncP}</strong></div>
+          <div style="background:rgba(127,127,127,.12);border-radius:8px;padding:6px 8px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">
+            <div><span style="color:#888;">Súper:</span> <strong>${superP}</strong></div>
+            <div><span style="color:#888;">Premium:</span> <strong>${premP}</strong></div>
+            <div><span style="color:#888;">Diesel:</span> <strong>${diesP}</strong></div>
+            <div><span style="color:#888;">GNC:</span> <strong>${gncP}</strong></div>
           </div>
 
-          <a href="${mapsLink}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:6px 0;background:#e8a849;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;font-size:11px;text-align:center;">
+          <a href="${mapsLink}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:6px 0;background:#ffc400;color:#141414;border-radius:6px;text-decoration:none;font-weight:600;font-size:11px;text-align:center;">
             🚗 Cómo llegar (Google Maps)
           </a>
         </div>
@@ -276,13 +269,13 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
   };
 
   return (
-    <div id="mapa" className="bg-white dark:bg-dark-card rounded-2xl border border-surface-200 dark:border-dark-border overflow-hidden shadow-sm">
+    <div id="mapa" className="bg-panel dark:bg-panel2-dark rounded-2xl border border-line dark:border-line-dark overflow-hidden shadow-sm">
       {/* Header con Controles y Búsqueda */}
-      <div className="px-4 py-3 border-b border-surface-100 dark:border-dark-border space-y-2.5">
+      <div className="px-4 py-3 border-b border-line2 dark:border-line-dark space-y-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-brand-primary" />
-            <h3 className="text-sm font-bold text-zinc-700 dark:text-zinc-200">
+            <MapPin className="w-4 h-4 text-accent-ink dark:text-accent" />
+            <h3 className="text-sm font-bold text-ink-1 dark:text-ink-dark-1">
               Mapa de Estaciones de Servicio ({filteredStations.length})
             </h3>
           </div>
@@ -290,14 +283,14 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
           <div className="flex items-center gap-2">
             <button
               onClick={handleLocate}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-accent-blue bg-accent-blue/10 hover:bg-accent-blue/20 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-accent-ink dark:text-accent bg-accent/10 hover:bg-accent/20 transition-colors"
             >
               <Locate className="w-3.5 h-3.5" />
               <span>Mi ubicación</span>
             </button>
             <button
               onClick={() => setShowList(!showList)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-surface-100 dark:bg-dark-surface text-zinc-600 dark:text-zinc-300 hover:bg-surface-200"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-panel2 dark:bg-panel-dark text-ink-2 dark:text-ink-dark-2 hover:bg-panel2"
             >
               <span>{showList ? "Ocultar lista" : "Ver lista"}</span>
               {showList ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -308,26 +301,26 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
         {/* Buscador de estaciones + Selector de combustible */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-ink-4 absolute left-2.5 top-2.5" />
             <input
               type="text"
               placeholder="Bandera, localidad o dirección..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-surface-200 dark:border-dark-border bg-surface-50 dark:bg-dark-surface text-zinc-700 dark:text-zinc-200 outline-none focus:border-brand-primary"
+              className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-line dark:border-line-dark bg-base dark:bg-panel-dark text-ink-1 dark:text-ink-dark-1 outline-none focus:border-accent"
             />
           </div>
 
           {/* Selector de combustible en el mapa */}
-          <div className="flex items-center gap-1 bg-surface-50 dark:bg-dark-surface border border-surface-200 dark:border-dark-border rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-base dark:bg-panel-dark border border-line dark:border-line-dark rounded-lg p-0.5">
             {Object.entries(fuelTypeKeys).map(([key, item]) => (
               <button
                 key={key}
                 onClick={() => setSelectedFuel(key)}
                 className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                   selectedFuel === key
-                    ? "bg-brand-primary text-white shadow-xs"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800"
+                    ? "bg-accent text-white shadow-xs"
+                    : "text-ink-3 dark:text-ink-dark-3 hover:text-ink-1"
                 }`}
               >
                 {item.label}
@@ -344,8 +337,8 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
               onClick={() => setSelectedBrand(b.id)}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors shrink-0 ${
                 selectedBrand === b.id
-                  ? "bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900"
-                  : "bg-surface-100 dark:bg-dark-surface text-zinc-500 hover:bg-surface-200 dark:hover:bg-dark-border"
+                  ? "bg-ink-1 dark:bg-ink-dark-1 text-white dark:text-ink-1"
+                  : "bg-panel2 dark:bg-panel-dark text-ink-3 hover:bg-panel2 dark:hover:bg-line-dark"
               }`}
             >
               {b.id !== "all" && (
@@ -365,25 +358,25 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
         <div className="absolute top-3 right-3 z-[400] flex flex-col gap-1">
           <button
             onClick={() => mapInstanceRef.current?.zoomIn()}
-            className="w-8 h-8 rounded-lg bg-white dark:bg-dark-card border border-surface-200 dark:border-dark-border flex items-center justify-center shadow-sm hover:bg-surface-50 transition-colors"
+            className="w-8 h-8 rounded-lg bg-panel dark:bg-panel2-dark border border-line dark:border-line-dark flex items-center justify-center shadow-sm hover:bg-base transition-colors"
             aria-label="Acercar mapa"
           >
-            <Plus className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+            <Plus className="w-4 h-4 text-ink-2 dark:text-ink-dark-2" />
           </button>
           <button
             onClick={() => mapInstanceRef.current?.zoomOut()}
-            className="w-8 h-8 rounded-lg bg-white dark:bg-dark-card border border-surface-200 dark:border-dark-border flex items-center justify-center shadow-sm hover:bg-surface-50 transition-colors"
+            className="w-8 h-8 rounded-lg bg-panel dark:bg-panel2-dark border border-line dark:border-line-dark flex items-center justify-center shadow-sm hover:bg-base transition-colors"
             aria-label="Alejar mapa"
           >
-            <Minus className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+            <Minus className="w-4 h-4 text-ink-2 dark:text-ink-dark-2" />
           </button>
         </div>
       </div>
 
       {/* Lista desplegable de estaciones */}
       {showList && (
-        <div className="p-4 border-t border-surface-200 dark:border-dark-border bg-surface-50 dark:bg-dark-surface max-h-60 overflow-y-auto divide-y divide-surface-100 dark:divide-dark-border">
-          <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
+        <div className="p-4 border-t border-line dark:border-line-dark bg-base dark:bg-panel-dark max-h-60 overflow-y-auto divide-y divide-line2 dark:divide-line-dark">
+          <h4 className="text-xs font-bold text-ink-3 uppercase tracking-wider mb-2">
             {debouncedSearch ? `Resultados para “${debouncedSearch}”` : userLocation ? "Estaciones más cercanas" : "Estaciones disponibles"} ({fuelTypeKeys[selectedFuel]?.label})
           </h4>
           {filteredStations.slice(0, 20).map((st) => {
@@ -391,11 +384,11 @@ export default function StationMap({ userLocation, onUserLocation }: { userLocat
             return (
               <div key={st.id} className="py-2 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{st.name || st.rawName}</div>
-                  <div className="text-[11px] text-zinc-400">{st.address} {st.city ? `(${st.city})` : ""}{st.distanceKm !== undefined ? ` · ${st.distanceKm.toFixed(1)} km` : ""}</div>
+                  <div className="text-xs font-bold text-ink-1 dark:text-ink-dark-1">{st.name || st.rawName}</div>
+                  <div className="text-[11px] text-ink-4">{st.address} {st.city ? `(${st.city})` : ""}{st.distanceKm !== undefined ? ` · ${st.distanceKm.toFixed(1)} km` : ""}</div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-extrabold text-zinc-800 dark:text-zinc-100 tabular-nums">
+                  <span className="text-sm font-extrabold text-ink-1 dark:text-ink-dark-1 tabular-nums">
                     {price ? `$${price.toLocaleString("es-AR")}` : "-"}
                   </span>
                   {st.lat && st.lng && (
